@@ -15,10 +15,10 @@ public partial class PromotionMenu : UserControl
     {
         InitializeComponent();
 
-        QueenImg.Source = Images.GetImage(player, PieceType.Queen);
-        BishopImg.Source = Images.GetImage(player, PieceType.Bishop);
-        RookImg.Source = Images.GetImage(player, PieceType.Rook);
-        KnightImg.Source = Images.GetImage(player, PieceType.Knight);
+        QueenImg.Source = PieceThemeHelper.GetImage(player, PieceType.Queen);
+        BishopImg.Source = PieceThemeHelper.GetImage(player, PieceType.Bishop);
+        RookImg.Source = PieceThemeHelper.GetImage(player, PieceType.Rook);
+        KnightImg.Source = PieceThemeHelper.GetImage(player, PieceType.Knight);
     }
 
     private void QueenImg_MouseDown(object sender, MouseButtonEventArgs e)

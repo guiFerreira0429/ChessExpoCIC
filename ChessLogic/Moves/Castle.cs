@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChessLogic;
 
-public class Castle :Move
+public class Castle : Move
 {
     public override MoveType Type { get; }
     public override Position FromPos { get; }

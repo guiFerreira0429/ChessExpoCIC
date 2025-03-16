@@ -5,19 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChessUI"
         mc:Ignorable="d"
-        Title="Chess" Width="600" SizeToContent="Height"
+        Title="Chess" SizeToContent="Height"
         Icon="Assets/icon.ico"
         WindowStartupLocation="CenterScreen"
         Background="#101010"
         KeyDown="Window_KeyDown"
->
+        Height="800"
+        Width="1200">
     <Viewbox>
         <Grid x:Name="BoardGrid" 
               Width="600" 
               Height="600"
               MouseDown="BoardGrid_MouseDown">
             <Grid.Background>
-                <ImageBrush x:Name="BoardGridBrush"/>
+                <ImageBrush x:Name="BoardGridBrush" ImageSource="/Assets/Boards/blue.png"/>
             </Grid.Background>
 
             <UniformGrid x:Name="HighlightGrid" 

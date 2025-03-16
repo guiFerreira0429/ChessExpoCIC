@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Numerics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -12,20 +13,25 @@ namespace ChessUI;
 
 public partial class MainWindow : Window
 {
-    public static string AssetsUrl;
-    public static string SelectedTheme = "Wood";
+    public static MainWindow Instance { get; private set; }
+
+    public static string BoardUrl;
+    public static BoardTheme SelectedBoardTheme;
+
+    public static string PieceUrl;
+    public static PieceTheme SelectedPieceTheme;
 
     private readonly Image[,] pieceImages = new Image[8, 8];
-    private readonly Rectangle[,] highlights = new Rectangle[8,8];
+    private readonly Rectangle[,] highlights = new Rectangle[8, 8];
     private readonly Dictionary<Position, Move> moveCache = new Dictionary<Position, Move>();
 
-    private GameState gameState;
+    public GameState gameState;
     private Position selectedPos = null;
 
     public MainWindow()
     {
         InitializeComponent();
-        InitializeTheme();
+        Instance = this;
         InitializeBoard();
 
         gameState = new GameState(Player.White, Board.Initial());
@@ -33,15 +39,10 @@ public partial class MainWindow : Window
         SetCursor(gameState.CurrentPlayer);
     }
 
-    private static void InitializeTheme()
-    {
-        AssetsUrl = $"Assets/{SelectedTheme}/";
-    }
-
     private void InitializeBoard()
     {
-        BoardGridBrush.ImageSource = Images.LoadImage($"Assets/Wood/Board.png");
-
+        //BoardThemeHelper.ChangeBoardTheme(BoardTheme.Default);
+        //PieceThemeHelper.ChangePieceTheme(PieceTheme.Default);
 
         for (int r = 0; r < 8; r++)
         {
@@ -51,21 +52,21 @@ public partial class MainWindow : Window
                 pieceImages[r, c] = image;
                 PieceGrid.Children.Add(image);
 
-                Rectangle highlight = new Rectangle();
+                Rectangle highlight = new();
                 highlights[r, c] = highlight;
                 HighlightGrid.Children.Add(highlight);
             }
         }
     }
 
-    private void DrawBoard(Board board)
+    public void DrawBoard(Board board)
     {
         for (int r = 0; r < 8; r++)
         {
             for (int c = 0; c < 8; c++)
             {
                 Piece piece = board[r, c];
-                pieceImages[r, c].Source = Images.GetImage(piece);
+                pieceImages[r, c].Source = PieceThemeHelper.GetImage(piece);
             }
         }
     }
@@ -122,10 +123,10 @@ public partial class MainWindow : Window
 
     private void HandlePromotion(Position from, Position to)
     {
-        pieceImages[to.Row, to.Column].Source = Images.GetImage(gameState.CurrentPlayer, PieceType.Pawn);
+        pieceImages[to.Row, to.Column].Source = PieceThemeHelper.GetImage(gameState.CurrentPlayer, PieceType.Pawn);
         pieceImages[from.Row, from.Column].Source = null;
 
-        PromotionMenu promMenu = new PromotionMenu(gameState.CurrentPlayer);
+        PromotionMenu promMenu = new(gameState.CurrentPlayer);
         MenuContainer.Content = promMenu;
 
         promMenu.PieceSelected += type =>
@@ -240,7 +241,7 @@ public partial class MainWindow : Window
 
     private void ShowPauseMenu()
     {
-        PauseMenu pauseMenu = new PauseMenu();
+        PauseMenu pauseMenu = new();
         MenuContainer.Content = pauseMenu;
 
         pauseMenu.OptionSelected += option =>

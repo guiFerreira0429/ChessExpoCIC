@@ -12,6 +12,7 @@
     <None Remove="Assets\BishopB.png" />
     <None Remove="Assets\BishopW.png" />
     <None Remove="Assets\Board.png" />
+    <None Remove="Assets\Boards\default.png" />
     <None Remove="Assets\CursorB.cur" />
     <None Remove="Assets\CursorW.cur" />
     <None Remove="Assets\icon.ico" />
@@ -32,22 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\Wood\BishopB.png" />
-    <Resource Include="Assets\Wood\BishopW.png" />
-    <Resource Include="Assets\Wood\Board.png" />
+    <Resource Include="Assets\Boards\default.png" />
     <Resource Include="Assets\CursorB.cur" />
     <Resource Include="Assets\CursorW.cur" />
     <Resource Include="Assets\icon.ico" />
-    <Resource Include="Assets\Wood\KingB.png" />
-    <Resource Include="Assets\Wood\KingW.png" />
-    <Resource Include="Assets\Wood\KnightB.png" />
-    <Resource Include="Assets\Wood\KnightW.png" />
-    <Resource Include="Assets\Wood\PawnB.png" />
-    <Resource Include="Assets\Wood\PawnW.png" />
-    <Resource Include="Assets\Wood\QueenB.png" />
-    <Resource Include="Assets\Wood\QueenW.png" />
-    <Resource Include="Assets\Wood\RookB.png" />
-    <Resource Include="Assets\Wood\RookW.png" />
   </ItemGroup>
 
 </Project>

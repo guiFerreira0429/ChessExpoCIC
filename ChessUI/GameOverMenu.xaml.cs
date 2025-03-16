@@ -1,17 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using ChessLogic;
 
 namespace ChessUI
@@ -53,10 +41,10 @@ namespace ChessUI
         {
             return reason switch
             {
-                EndReason.Stalemate => $"STALEMATE - {PlayerString(currentPlayer)} Não tem jogadas possíveis",
-                EndReason.Checkmate => $"CHECKMATE - {PlayerString(currentPlayer)} Não tem jogadas possíveis",
-                EndReason.FiftyMoveRule => "FIFTY-MOVE RULE",
-                EndReason.ThreefoldRepetition => "THREEFOLD REPETITION",
+                EndReason.Stalemate => $"StaleMate - {PlayerString(currentPlayer)} Não tem jogadas possíveis",
+                EndReason.Checkmate => $"CheckMate - {PlayerString(currentPlayer)} Não tem jogadas possíveis",
+                EndReason.FiftyMoveRule => "Regra das 50 jogadas",
+                EndReason.ThreefoldRepetition => "Repetição de jogadas",
                 _ => ""
             };
         }
