@@ -400,4 +400,5 @@ public partial class MainWindow : Window
     }
 
     // O DAVID É BESUNTADO COM leite manteiga de piça
+    // Amen
 }
