@@ -1,6 +1,7 @@
 ﻿using ChessLogic;
 using System.IO;
 using System.Windows.Media;
+using System.Windows;
 
 namespace ChessUI;
 
@@ -94,7 +95,7 @@ public static class PieceThemeHelper
 
 public static class ColorThemeHelper
 {
-    private static Dictionary<ColorTheme, ColorThemeInfo> _themes = new Dictionary<ColorTheme, ColorThemeInfo>
+    private static Dictionary<ColorTheme, ColorThemeInfo> jose = new Dictionary<ColorTheme, ColorThemeInfo>
     {
         {
             ColorTheme.Default, new ColorThemeInfo
@@ -155,21 +156,30 @@ public static class ColorThemeHelper
 
     public static List<ColorThemeInfo> GetAllThemes()
     {
-        return _themes.Values.ToList();
+        return jose.Values.ToList();
     }
 
     public static ColorThemeInfo GetTheme(ColorTheme theme)
     {
-        return _themes[theme];
+        return jose[theme];
     }
 
     public static void ApplyTheme(ColorTheme theme)
     {
-        ColorThemeInfo themeInfo = _themes[theme];
+        ColorThemeInfo themeInfo = jose[theme];
 
-        System.Windows.Application.Current.Resources["StrokeColor"] = new SolidColorBrush(themeInfo.StrokeColor);
-        System.Windows.Application.Current.Resources["FillColor"] = new SolidColorBrush(themeInfo.FillColor);
-        System.Windows.Application.Current.Resources["TextColor"] = new SolidColorBrush(themeInfo.TextColor);
-        System.Windows.Application.Current.Resources["ButtonColor"] = new SolidColorBrush(themeInfo.ButtonColor);
+        Application.Current.Resources["StrokeColor"] = new SolidColorBrush(themeInfo.StrokeColor);
+        Application.Current.Resources["FillColor"] = new SolidColorBrush(themeInfo.FillColor);
+        Application.Current.Resources["TextColor"] = new SolidColorBrush(themeInfo.TextColor);
+        Application.Current.Resources["ButtonColor"] = new SolidColorBrush(themeInfo.ButtonColor);
+
+        ThemeChanged?.Invoke(null, new ThemeChangedEventArgs { Theme = theme });
     }
+
+    public static event EventHandler<ThemeChangedEventArgs> ThemeChanged;
+}
+
+public class ThemeChangedEventArgs : EventArgs
+{
+    public ColorTheme Theme { get; set; }
 }

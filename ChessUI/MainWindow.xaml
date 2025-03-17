@@ -141,11 +141,11 @@
         </Style>
     </Window.Resources>
 
-   <Grid>
+   <Grid Margin="50,5,50,5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -177,7 +177,7 @@
                         CornerRadius="25" 
                         Margin="5"
                         BorderBrush="{StaticResource StrokeColor}">
-                    <Image Source="Assets/Pieces/default/bK.svg" Margin="10"/>
+                    <Image Source="Assets/Pieces/default/bK.svg" Margin="10" />
                 </Border>
             
                 <!-- Nome e Peças Capturadas -->
@@ -214,8 +214,8 @@
                         MinWidth="80" 
                         Margin="5" 
                         Padding="10,5"
-                        BorderBrush="{StaticResource StrokeColor}"
-                        >
+                        BorderBrush="{StaticResource StrokeColor}">
+
                     <TextBlock x:Name="BlackClock" 
                                Text="10:00" 
                                Foreground="White" 
@@ -227,7 +227,7 @@
             </Grid>
         </Border>
     
-        <Grid Grid.Column="1" Grid.Row="1">
+        <Grid Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200"/>
                 <ColumnDefinition Width="*"/>
@@ -237,7 +237,7 @@
         <Border Grid.Column="0" Grid.Row="1">
             <Button Content="Jogar" Click="StartGameButton_Click" Background="{StaticResource ButtonColor}" Foreground="White" FontSize="16" Height="50"/>
         </Border>
-        <Viewbox Grid.Column="1" Grid.Row="1" Width="900" Height="900">
+        <Viewbox Grid.Column="1" Grid.Row="1" Width="875" Height="875">
             <Grid x:Name="BoardGrid" 
                   Width="600" 
                   Height="600"
@@ -258,28 +258,28 @@
             </Grid>
         </Viewbox>
             
-        <StackPanel Grid.Column="2" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center">
+        <StackPanel Grid.Column="2" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center">
             <TextBlock Text="Tabuleiro" 
-            Foreground="White" 
-            FontSize="16" 
-            VerticalAlignment="Center"/>
+                        Foreground="White" 
+                        FontSize="16" 
+                        VerticalAlignment="Center"/>
             <ComboBox x:Name="BoardThemeComboBox" 
-            SelectionChanged="BoardThemeComboBox_SelectionChanged" 
-            Style="{StaticResource ThemeComboBoxStyle}"/>
+                        SelectionChanged="BoardThemeComboBox_SelectionChanged" 
+                        Style="{StaticResource ThemeComboBoxStyle}" Width="300"/>
             <TextBlock Text="Peças" 
-            Foreground="White" 
-            FontSize="16" 
-            VerticalAlignment="Center"/>
+                        Foreground="White" 
+                        FontSize="16" 
+                        VerticalAlignment="Center"/>
             <ComboBox x:Name="PieceThemeComboBox" 
-            SelectionChanged="PieceThemeComboBox_SelectionChanged"
-            Style="{StaticResource ThemeComboBoxStyle}"/>
+                        SelectionChanged="PieceThemeComboBox_SelectionChanged"
+                        Style="{StaticResource ThemeComboBoxStyle}"/>
             <TextBlock Text="Tema" 
-            Foreground="White" 
-            FontSize="16" 
-            VerticalAlignment="Center"/>
+                        Foreground="White" 
+                        FontSize="16" 
+                        VerticalAlignment="Center"/>
             <ComboBox x:Name="ColorThemeComboBox" 
-            SelectionChanged="ColorThemeComboBox_SelectionChanged"
-            Style="{StaticResource ThemeComboBoxStyle}"/>
+                        SelectionChanged="ColorThemeComboBox_SelectionChanged"
+                        Style="{StaticResource ThemeComboBoxStyle}"/>
         </StackPanel>
 
         </Grid>
@@ -356,3 +356,6 @@
         </Border>
     </Grid>
 </Window>
+    
+    
+    

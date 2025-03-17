@@ -13,7 +13,11 @@ public static class Images
     {
         try
         {
-            return new BitmapImage( new Uri(filePath, UriKind.Relative));
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"Arquivo '{filePath}' não encontrado.");
+            }
+            return new BitmapImage(new Uri(filePath, UriKind.Relative));
         }
         catch (Exception ex)
         {
@@ -52,17 +56,5 @@ public static class Images
             Console.WriteLine($"Erro ao carregar SVG '{filePath}': {ex.Message}");
             return null;
         }
-    }
-
-
-
-    public static BitmapImage ConvertToBitmapImage(ImageSource imageSource)
-    {
-        if (imageSource is BitmapImage bitmapImage)
-        {
-            return bitmapImage;
-        }
-
-        return null;
     }
 }

@@ -28,25 +28,27 @@ public partial class MainWindow : Window
     public GameState gameState;
     private Position selectedPos = null;
 
-    private bool Loading;
+    private readonly bool Loading;
 
     private ObservableCollection<ImageSource> whiteCapturedPieces = [];
     private ObservableCollection<ImageSource> blackCapturedPieces = [];
 
-    private DispatcherTimer whiteTimer;
-    private DispatcherTimer blackTimer;
+    //private DispatcherTimer whiteTimer;
+    //private DispatcherTimer blackTimer;
 
-    private int whiteTimeRemaining = 600;
-    private int blackTimeRemaining = 600;
+    //private int whiteTimeRemaining = 600;
+    //private int blackTimeRemaining = 600;
 
-    private string whitePlayerName = "Jogador Branco";
-    private string blackPlayerName = "Jogador Preto";
+    //private string whitePlayerName = "Jogador Branco";
+    //private string blackPlayerName = "Jogador Preto";
 
-    private bool gameInProgress = false;
+    //private bool gameInProgress = false;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        InitializeThemeHandling();
 
         Loading = true;
         Instance = this;
@@ -56,9 +58,9 @@ public partial class MainWindow : Window
 
         InitializeUI();
 
+        ColorThemeHelper.ApplyTheme(ColorTheme.Blue);
         BoardThemeHelper.ChangeBoardTheme(BoardTheme.Default);
         PieceThemeHelper.ChangePieceTheme(PieceTheme.Anarcandy);
-        ColorThemeHelper.ApplyTheme(ColorTheme.Blue);
 
         InitializeBoard();
 
@@ -319,21 +321,21 @@ public partial class MainWindow : Window
             });
         }
 
-        BoardThemeComboBox.SelectedIndex = 0;
-        PieceThemeComboBox.SelectedIndex = 0;
-        ColorThemeComboBox.SelectedIndex = 0;
+        BoardThemeComboBox.SelectedIndex = (int)BoardTheme.Default;
+        PieceThemeComboBox.SelectedIndex = (int)PieceTheme.Default;
+        ColorThemeComboBox.SelectedIndex = (int)ColorTheme.Default;
     }
 
     private ImageSource GetBoardThumbnailPath(BoardTheme theme)
     {
         string basePath = $"Assets/Boards/{theme.ToString().ToLower()}";
-        if (File.Exists($"{basePath}.thumbnail.png"))
+        if (File.Exists($"{basePath}_thumbnail.png"))
         {
-            return Images.LoadImage($"{basePath}.thumbnail.png");
+            return Images.LoadImage($"{basePath}_thumbnail.png");
         }
-        else if (File.Exists($"{basePath}.thumbnail.jpg"))
+        else if (File.Exists($"{basePath}_thumbnail.jpg"))
         {
-            return Images.LoadImage($"{basePath}.thumbnail.jpg");
+            return Images.LoadImage($"{basePath}_thumbnail.jpg");
         }
         
         return Images.LoadImage(BoardThemeHelper.GetBoardTexturePath(theme));
@@ -384,18 +386,150 @@ public partial class MainWindow : Window
             {
                 dynamic item = ColorThemeComboBox.SelectedItem;
                 ColorTheme selectedTheme = item.Theme;
-                ColorThemeHelper.ApplyTheme(selectedTheme);
+
+                try
+                {
+                    // Aplica o tema (isso acionará o evento ThemeChanged)
+                    ColorThemeHelper.ApplyTheme(selectedTheme);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Erro ao alterar o tema: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }
 
     private void StartGameButton_Click(object sender, RoutedEventArgs e)
     {
-        RestartGame();
-        gameState.StartGame();
-        gameInProgress = true;
+        //Check if the game is already in progress
+        //if (!IsGameInProgress)
+        //{
+        //    Retrieve the selected game type from a ComboBox or other control
+        //    string gameType = GameTypeComboBox.SelectedItem?.ToString() ?? "Standard";
 
-        whiteCapturedPieces.Clear();
-        blackCapturedPieces.Clear();
+        //    Start the game with the selected type
+        //    StartGame(gameType);
+
+        //    Update button text and appearance
+        //    StartGameButton.Content = "Pause Game";
+        //    StartGameButton.Background = new SolidColorBrush(Colors.Orange);
+
+        //    Set flag indicating game is in progress
+        //   IsGameInProgress = true;
+        //}
+        //else
+        //{
+        //    Game is already in progress, so pause it
+        //    PauseGame();
+
+        //    Update button text and appearance
+        //    StartGameButton.Content = "Resume Game";
+        //    StartGameButton.Background = new SolidColorBrush(Colors.Green);
+
+        //    Set flag indicating game is paused
+        //   IsGameInProgress = false;
+        //}
+    }
+
+    // Helper method to initialize and start the game
+    private void StartGame(string gameType)
+    {
+        // Initialize the game board based on the selected game type
+        //switch (gameType)
+        //{
+        //    case "Standard":
+        //        // Initialize standard chess game
+        //        InitializeStandardChessGame();
+        //        break;
+        //    case "Fischer Random":
+        //        // Initialize Fischer Random (Chess960) game
+        //        InitializeFischerRandomChessGame();
+        //        break;
+        //    case "Custom":
+        //        // Initialize custom game position
+        //        InitializeCustomChessGame();
+        //        break;
+        //    default:
+        //        // Default to standard chess
+        //        InitializeStandardChessGame();
+        //        break;
+        //}
+
+        //// Start the game clock
+        //StartGameClock();
+
+        //// Enable the chess board for player interaction
+        //ChessBoard.IsEnabled = true;
+    }
+
+    // Helper method to pause the game
+    private void PauseGame()
+    {
+        // Pause the game clock
+        //PauseGameClock();
+
+        //// Disable the chess board during pause
+        //ChessBoard.IsEnabled = false;
+
+        //// Optional: Show pause overlay or message
+        //ShowPauseOverlay();
+    }
+
+    private void ColorThemeHelper_ThemeChanged(object sender, ThemeChangedEventArgs e)
+    {
+        // Garante que o código seja executado na thread da UI
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            // Força a atualização de toda a interface
+            RefreshEntireUI();
+        });
+    }
+
+    private void RefreshEntireUI()
+    {
+        // Isso força todos os elementos visuais a serem renderizados novamente
+        // Uma abordagem mais agressiva que pode ajudar com problemas de atualização de tema
+
+        // Recria os recursos de estilo
+        Style oldStyle = null;
+        if (Resources.Contains("ThemeComboBoxStyle"))
+        {
+            oldStyle = Resources["ThemeComboBoxStyle"] as Style;
+            Resources.Remove("ThemeComboBoxStyle");
+            Resources.Add("ThemeComboBoxStyle", oldStyle);
+        }
+
+        // Força a atualização de cada controle individual
+        InvalidateVisual();
+
+        // Itera por todos os controles na janela e força a atualização
+        ForceUpdateAllControls((Panel)Content);
+    }
+
+    private void ForceUpdateAllControls(Panel panel)
+    {
+        if (panel == null) return;
+
+        foreach (UIElement element in panel.Children)
+        {
+            // Força redesenho do elemento
+            element.InvalidateVisual();
+
+            // Se for um painel, processa seus filhos recursivamente
+            if (element is Panel childPanel)
+            {
+                ForceUpdateAllControls(childPanel);
+            }
+            else if (element is ContentControl contentControl && contentControl.Content is Panel contentPanel)
+            {
+                ForceUpdateAllControls(contentPanel);
+            }
+        }
+    }
+
+    private void InitializeThemeHandling()
+    {
+        ColorThemeHelper.ThemeChanged += ColorThemeHelper_ThemeChanged;
     }
 }

@@ -37,7 +37,7 @@
     <None Update="Assets\Boards\blue.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\Boards\blue.thumbnail.png">
+    <None Update="Assets\Boards\blue_thumbnail.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Assets\Boards\blue2.jpg">
