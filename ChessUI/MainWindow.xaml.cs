@@ -398,4 +398,6 @@ public partial class MainWindow : Window
         whiteCapturedPieces.Clear();
         blackCapturedPieces.Clear();
     }
+
+    // O DAVID É BESUNTADO COM leite manteiga de piça
 }
