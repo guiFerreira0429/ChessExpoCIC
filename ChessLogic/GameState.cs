@@ -8,7 +8,12 @@ public class GameState
 
     private int noCaptureOrPawnMoves = 0;
     private string stateString;
-    
+
+    public ChessTimer Timer { get; private set; }
+    public CapturedPiecesTracker CapturedPieces { get; private set; }
+
+    public bool TimerEnabled { get; set; }
+
     private readonly Dictionary<string, int> stateHistory = new Dictionary<string, int>();
 
     public GameState(Player player, Board board)
@@ -18,6 +23,17 @@ public class GameState
 
         stateString = new StateString(CurrentPlayer, board).ToString();
         stateHistory[stateString] = 1;
+
+        Timer = new ChessTimer(600);
+        CapturedPieces = new CapturedPiecesTracker();
+        TimerEnabled = false;
+    }
+
+    public GameState(Player player, Board board, int timeInSeconds, int incrementInSeconds = 0)
+            : this(player, board)
+    {
+        Timer = new ChessTimer(timeInSeconds, incrementInSeconds);
+        TimerEnabled = true;
     }
 
     public IEnumerable<Move> LegalMovesForPiece(Position pos)
@@ -34,6 +50,17 @@ public class GameState
 
     public void MakeMove(Move move)
     {
+        Piece capturedPiece = null;
+        if (!Board.IsEmpty(move.ToPos) && Board[move.ToPos].Color != CurrentPlayer)
+        {
+            capturedPiece = Board[move.ToPos];
+        }
+
+        if (capturedPiece != null)
+        {
+            CapturedPieces.AddCapturedPiece(capturedPiece, CurrentPlayer);
+        }
+
         Board.SetPawnSkipPosition(CurrentPlayer, null);
         bool captureOrPawn = move.Execute(Board);
 
@@ -48,6 +75,12 @@ public class GameState
         }
 
         CurrentPlayer = CurrentPlayer.Opponent();
+
+        if (TimerEnabled)
+        {
+            Timer.SwitchClock();
+        }
+
         UpdateStateString();
         CheckForGameOver();
     }
@@ -65,11 +98,21 @@ public class GameState
 
     private void CheckForGameOver()
     {
+        if (TimerEnabled)
+        {
+            Player timeoutPlayer;
+            if (Timer.IsTimeOut(out timeoutPlayer))
+            {
+                Result = Result.Win(timeoutPlayer.Opponent(), EndReason.TimeOut);
+                return;
+            }
+        }
+
         if (!AllLegalMovesFor(CurrentPlayer).Any())
         {
             if (Board.IsInCheck(CurrentPlayer))
             {
-                Result = Result.Win(CurrentPlayer.Opponent());
+                Result = Result.Win(CurrentPlayer.Opponent(), EndReason.Checkmate);
             }
             else
             {
@@ -118,5 +161,35 @@ public class GameState
     private bool ThreefoldRepetition()
     {
         return stateHistory[stateString] == 3;
+    }
+
+    public void StartGame()
+    {
+        if (TimerEnabled)
+        {
+            Timer.Start(CurrentPlayer);
+        }
+    }
+
+    public void PauseGame()
+    {
+        if (TimerEnabled)
+        {
+            Timer.Pause();
+        }
+    }
+
+    public void ResumeGame()
+    {
+        if (TimerEnabled)
+        {
+            Timer.Resume();
+        }
+    }
+
+    public void SetTimeControl(int timeInSeconds, int incrementInSeconds = 0)
+    {
+        Timer = new ChessTimer(timeInSeconds, incrementInSeconds);
+        TimerEnabled = true;
     }
 }

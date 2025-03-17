@@ -244,16 +244,16 @@ namespace ChessLogic
         {
             Position skipPos = GetPawnSkipPosition(player.Opponent());
 
-            if (skipPos != null)
+            if (skipPos == null)
             {
                 return false;
             }
 
             Position[] pawnPositions = player switch
             {
-                Player.White => new Position[] { skipPos + Direction.SouthWest, skipPos + Direction.SouthEast },
-                Player.Black => new Position[] { skipPos + Direction.NorthWest, skipPos + Direction.NorthEast },
-                _ => Array.Empty<Position>()
+                Player.White => [skipPos + Direction.SouthWest, skipPos + Direction.SouthEast],
+                Player.Black => [skipPos + Direction.NorthWest, skipPos + Direction.NorthEast],
+                _ => []
             };
 
             return HasPawnInPosition(player, pawnPositions, skipPos);

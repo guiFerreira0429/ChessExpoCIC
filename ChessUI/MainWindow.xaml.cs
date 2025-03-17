@@ -1,13 +1,13 @@
-﻿using System.Numerics;
-using System.Text;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using ChessLogic;
+using System.Collections.ObjectModel;
+using System.Windows.Threading;
 
 namespace ChessUI;
 
@@ -23,26 +23,52 @@ public partial class MainWindow : Window
 
     private readonly Image[,] pieceImages = new Image[8, 8];
     private readonly Rectangle[,] highlights = new Rectangle[8, 8];
-    private readonly Dictionary<Position, Move> moveCache = new Dictionary<Position, Move>();
+    private readonly Dictionary<Position, Move> moveCache = [];
 
     public GameState gameState;
     private Position selectedPos = null;
 
+    private bool Loading;
+
+    private ObservableCollection<ImageSource> whiteCapturedPieces = [];
+    private ObservableCollection<ImageSource> blackCapturedPieces = [];
+
+    private DispatcherTimer whiteTimer;
+    private DispatcherTimer blackTimer;
+
+    private int whiteTimeRemaining = 600;
+    private int blackTimeRemaining = 600;
+
+    private string whitePlayerName = "Jogador Branco";
+    private string blackPlayerName = "Jogador Preto";
+
+    private bool gameInProgress = false;
+
     public MainWindow()
     {
         InitializeComponent();
+
+        Loading = true;
         Instance = this;
+        
+        gameState = new GameState(Player.White, Board.Initial());
+        PieceThemeHelper.LoadPieceImages();
+
+        InitializeUI();
+
+        BoardThemeHelper.ChangeBoardTheme(BoardTheme.Default);
+        PieceThemeHelper.ChangePieceTheme(PieceTheme.Anarcandy);
+        ColorThemeHelper.ApplyTheme(ColorTheme.Blue);
+
         InitializeBoard();
 
-        gameState = new GameState(Player.White, Board.Initial());
         DrawBoard(gameState.Board);
         SetCursor(gameState.CurrentPlayer);
+        Loading = false;
     }
 
     private void InitializeBoard()
     {
-        //BoardThemeHelper.ChangeBoardTheme(BoardTheme.Default);
-        //PieceThemeHelper.ChangePieceTheme(PieceTheme.Default);
 
         for (int r = 0; r < 8; r++)
         {
@@ -66,7 +92,7 @@ public partial class MainWindow : Window
             for (int c = 0; c < 8; c++)
             {
                 Piece piece = board[r, c];
-                pieceImages[r, c].Source = PieceThemeHelper.GetImage(piece);
+                pieceImages[r, c].Source = PieceThemeHelper.GetImage(piece);              
             }
         }
     }
@@ -253,5 +279,123 @@ public partial class MainWindow : Window
                 RestartGame();
             }
         };
+    }
+
+    private void InitializeUI()
+    {
+        BoardThemeComboBox.Items.Clear();
+        PieceThemeComboBox.Items.Clear();
+        ColorThemeComboBox.Items.Clear();
+
+        foreach (BoardTheme theme in Enum.GetValues(typeof(BoardTheme)))
+        {
+            BoardThemeComboBox.Items.Add(new
+            {
+                Theme = theme,
+                Name = theme.ToString(),
+                ThumbnailPath = GetBoardThumbnailPath(theme)
+            });
+        }
+
+
+        foreach (PieceTheme theme in Enum.GetValues(typeof(PieceTheme)))
+        {
+            PieceThemeComboBox.Items.Add(new
+            {
+                Theme = theme,
+                Name = theme.ToString(),
+                ThumbnailPath = GetPieceThumbnailPath(theme)
+            });
+        }
+
+        var temas = ColorThemeHelper.GetAllThemes();
+        foreach (ColorThemeInfo themeInfo in temas)
+        {
+            ColorThemeComboBox.Items.Add(new
+            {
+                Theme = themeInfo.Theme,
+                Name = themeInfo.Name.ToString(),
+                ColorPreview = themeInfo.PreviewBrush
+            });
+        }
+
+        BoardThemeComboBox.SelectedIndex = 0;
+        PieceThemeComboBox.SelectedIndex = 0;
+        ColorThemeComboBox.SelectedIndex = 0;
+    }
+
+    private ImageSource GetBoardThumbnailPath(BoardTheme theme)
+    {
+        string basePath = $"Assets/Boards/{theme.ToString().ToLower()}";
+        if (File.Exists($"{basePath}.thumbnail.png"))
+        {
+            return Images.LoadImage($"{basePath}.thumbnail.png");
+        }
+        else if (File.Exists($"{basePath}.thumbnail.jpg"))
+        {
+            return Images.LoadImage($"{basePath}.thumbnail.jpg");
+        }
+        
+        return Images.LoadImage(BoardThemeHelper.GetBoardTexturePath(theme));
+    }
+
+    private ImageSource GetPieceThumbnailPath(PieceTheme theme)
+    {
+        string basePath = $"Assets/Pieces/{theme.ToString().ToLower()}/wN.svg";
+        return Images.LoadSvg(basePath);
+    }
+
+    private void BoardThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!Loading)
+        {
+            if (BoardThemeComboBox.SelectedItem != null)
+            {
+                dynamic item = BoardThemeComboBox.SelectedItem;
+                BoardTheme selectedTheme = item.Theme;
+                BoardThemeHelper.ChangeBoardTheme(selectedTheme);
+            }
+        }
+    }
+
+    private void PieceThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!Loading)
+        {
+            if (PieceThemeComboBox.SelectedItem != null)
+            {
+                dynamic item = PieceThemeComboBox.SelectedItem;
+                PieceTheme selectedTheme = item.Theme;
+                PieceThemeHelper.ChangePieceTheme(selectedTheme);
+                PieceThemeHelper.LoadPieceImages();
+                if (gameState != null)
+                {
+                    DrawBoard(gameState.Board);
+                }
+            }
+        }
+    }
+
+    private void ColorThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!Loading)
+        {
+            if (ColorThemeComboBox.SelectedItem != null)
+            {
+                dynamic item = ColorThemeComboBox.SelectedItem;
+                ColorTheme selectedTheme = item.Theme;
+                ColorThemeHelper.ApplyTheme(selectedTheme);
+            }
+        }
+    }
+
+    private void StartGameButton_Click(object sender, RoutedEventArgs e)
+    {
+        RestartGame();
+        gameState.StartGame();
+        gameInProgress = true;
+
+        whiteCapturedPieces.Clear();
+        blackCapturedPieces.Clear();
     }
 }

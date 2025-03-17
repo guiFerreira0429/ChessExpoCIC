@@ -12,5 +12,6 @@ public enum EndReason
     Stalemate,
     FiftyMoveRule,
     InsufficientMaterial,
-    ThreefoldRepetition
+    ThreefoldRepetition,
+    TimeOut
 }

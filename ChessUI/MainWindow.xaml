@@ -5,35 +5,354 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChessUI"
         mc:Ignorable="d"
-        Title="Chess" SizeToContent="Height"
+        Title="Chess"  
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
         Icon="Assets/icon.ico"
         WindowStartupLocation="CenterScreen"
-        Background="#101010"
-        KeyDown="Window_KeyDown"
-        Height="800"
-        Width="1200">
-    <Viewbox>
-        <Grid x:Name="BoardGrid" 
-              Width="600" 
-              Height="600"
-              MouseDown="BoardGrid_MouseDown">
-            <Grid.Background>
-                <ImageBrush x:Name="BoardGridBrush" ImageSource="/Assets/Boards/blue.png"/>
-            </Grid.Background>
+        Background="{StaticResource StrokeColor}"
+        KeyDown="Window_KeyDown">
+    <Window.Resources>
+        <local:SelectedItemToBrushConverter x:Key="SelectedItemToBrushConverter"/>
 
-            <UniformGrid x:Name="HighlightGrid" 
-                         Rows="8"
-                         Columns="8">
+        <ControlTemplate x:Key="ComboBoxToggleButtonTemplate" TargetType="ToggleButton">
+            <Border Background="Transparent">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="1" Background="Transparent"/>
+                    <Path Grid.Column="1" 
+                   Data="M0,0 L8,0 L4,4 Z" 
+                   Fill="White" 
+                   Margin="5"
+                   VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </ControlTemplate>
+        
+        <Style x:Key="ThemeComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-            </UniformGrid>
+                            <!-- Header -->
+                            <Grid Grid.Row="0" Margin="0,0,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                            </Grid>
+
+                            <!-- Content -->
+                            <Border Grid.Row="2" 
+                                    Background="{StaticResource ButtonColor}" 
+                                    BorderThickness="0"
+                                    CornerRadius="3">
+                                <Grid>
+                                    <ToggleButton x:Name="ToggleButton" 
+                                                  IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                                  Template="{StaticResource ComboBoxToggleButtonTemplate}"/>
+
+                                    <ContentPresenter x:Name="ContentPresenter"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Center"
+                                                      Margin="5,0,0,0"/>
+
+                                    <Popup x:Name="PART_Popup" 
+                                           IsOpen="{TemplateBinding IsDropDownOpen}" 
+                                           AllowsTransparency="True" 
+                                           Placement="Bottom"
+                                           PopupAnimation="Slide">
+                                        <Border Background="{StaticResource ButtonColor}" 
+                                                BorderThickness="1" 
+                                                BorderBrush="#333333" 
+                                                CornerRadius="3"
+                                                MaxHeight="300">
+                                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                                          HorizontalScrollBarVisibility="Disabled">
+                                                <ItemsPresenter x:Name="ItemsPresenter"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Width="180"/>
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemTemplate">
+                <Setter.Value>
+                    <DataTemplate xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                        <Border Width="45" 
+                                Height="45" 
+                                Margin="2" 
+                                CornerRadius="3"
+                                Background="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ComboBoxItem}, Converter={StaticResource SelectedItemToBrushConverter}}">
+                            <Grid>
+                                <Image x:Name="ThumbnailImage"
+                                       Source="{Binding ThumbnailPath}" 
+                                       Stretch="Uniform" 
+                                       Margin="5"
+                                       Visibility="Visible"/>
+
+                                <Rectangle x:Name="PlaceholderShape" Fill="{Binding ColorPreview}" Width="30" Height="30" Visibility="Visible"/>
+                            </Grid>
+                        </Border>
+
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="{x:Null}">
+                                <Setter TargetName="ThumbnailImage" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="PlaceholderShape" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="">
+                                <Setter TargetName="ThumbnailImage" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="PlaceholderShape" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="{x:Static sys:String.Empty}">
+                                <Setter TargetName="ThumbnailImage" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="PlaceholderShape" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ThumbnailPath}" Value="{x:Type sys:String}">
+                                <Setter TargetName="ThumbnailImage" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="PlaceholderShape" Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+   <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        
+        <Border Grid.Column="1" Grid.Row="0" 
+                Background="{StaticResource FillColor}" 
+                BorderThickness="1" 
+                CornerRadius="8" 
+                Margin="0,10,0,5"
+                MinHeight="60"
+                BorderBrush="{StaticResource TextColor}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
             
-            <UniformGrid x:Name="PieceGrid"
-                         Rows="8"
-                         Columns="8"
-                         RenderOptions.BitmapScalingMode="HighQuality">
-            </UniformGrid>
+                <!-- Identificação do Jogador Preto -->
+                <Border Grid.Column="0" 
+                        Background="#333333" 
+                        Width="50" 
+                        Height="50" 
+                        CornerRadius="25" 
+                        Margin="5"
+                        BorderBrush="{StaticResource StrokeColor}">
+                    <Image Source="Assets/Pieces/default/bK.svg" Margin="10"/>
+                </Border>
+            
+                <!-- Nome e Peças Capturadas -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock Text="Jogador Preto" Foreground="White" FontWeight="Bold" FontSize="14"/>
+                    <StackPanel Orientation="Horizontal">
+                        <ItemsControl x:Name="BlackCapturedPieces">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding}" Width="20" Height="20" Margin="1"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            
+                <!-- Pontuação (opcional) -->
+                <TextBlock Grid.Column="2" 
+                           Text="+0" 
+                           Foreground="White" 
+                           FontWeight="Bold" 
+                           VerticalAlignment="Center" 
+                           Margin="5,0"/>
+            
+                <!-- Relógio -->
+                <Border Grid.Column="3" 
+                        Background="{StaticResource ButtonColor}" 
+                        CornerRadius="5" 
+                        MinWidth="80" 
+                        Margin="5" 
+                        Padding="10,5"
+                        BorderBrush="{StaticResource StrokeColor}"
+                        >
+                    <TextBlock x:Name="BlackClock" 
+                               Text="10:00" 
+                               Foreground="White" 
+                               FontSize="18" 
+                               FontWeight="Bold" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+    
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+        
+        <Border Grid.Column="0" Grid.Row="1">
+            <Button Content="Jogar" Click="StartGameButton_Click" Background="{StaticResource ButtonColor}" Foreground="White" FontSize="16" Height="50"/>
+        </Border>
+        <Viewbox Grid.Column="1" Grid.Row="1" Width="900" Height="900">
+            <Grid x:Name="BoardGrid" 
+                  Width="600" 
+                  Height="600"
+                  MouseDown="BoardGrid_MouseDown">
+                <Grid.Background>
+                    <ImageBrush x:Name="BoardGridBrush"/>
+                </Grid.Background>
+                <UniformGrid x:Name="HighlightGrid" 
+                             Rows="8"
+                             Columns="8">
+                </UniformGrid>
+                <UniformGrid x:Name="PieceGrid"
+                             Rows="8"
+                             Columns="8"
+                             RenderOptions.BitmapScalingMode="HighQuality">
+                </UniformGrid>
+                <ContentControl x:Name="MenuContainer"/>
+            </Grid>
+        </Viewbox>
+            
+        <StackPanel Grid.Column="2" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center">
+            <TextBlock Text="Tabuleiro" 
+            Foreground="White" 
+            FontSize="16" 
+            VerticalAlignment="Center"/>
+            <ComboBox x:Name="BoardThemeComboBox" 
+            SelectionChanged="BoardThemeComboBox_SelectionChanged" 
+            Style="{StaticResource ThemeComboBoxStyle}"/>
+            <TextBlock Text="Peças" 
+            Foreground="White" 
+            FontSize="16" 
+            VerticalAlignment="Center"/>
+            <ComboBox x:Name="PieceThemeComboBox" 
+            SelectionChanged="PieceThemeComboBox_SelectionChanged"
+            Style="{StaticResource ThemeComboBoxStyle}"/>
+            <TextBlock Text="Tema" 
+            Foreground="White" 
+            FontSize="16" 
+            VerticalAlignment="Center"/>
+            <ComboBox x:Name="ColorThemeComboBox" 
+            SelectionChanged="ColorThemeComboBox_SelectionChanged"
+            Style="{StaticResource ThemeComboBoxStyle}"/>
+        </StackPanel>
 
-            <ContentControl x:Name="MenuContainer"/> 
         </Grid>
-    </Viewbox>
+        <Border Grid.Column="1" Grid.Row="2" 
+                Background="{StaticResource FillColor}" 
+                BorderThickness="1" 
+                CornerRadius="8" 
+                Margin="0,5,0,10"
+                MinHeight="60"
+                BorderBrush="{StaticResource TextColor}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Identificação do Jogador Branco -->
+                <Border Grid.Column="0" 
+                        Background="White" 
+                        Width="50" 
+                        Height="50" 
+                        CornerRadius="25" 
+                        Margin="5"
+                        BorderBrush="{StaticResource StrokeColor}">
+                    <Image Source="Assets/Pieces/default/wK.svg" Margin="10"/>
+                </Border>
+
+                <!-- Nome e Peças Capturadas -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock Text="Jogador Branco" Foreground="White" FontWeight="Bold" FontSize="14"/>
+                    <StackPanel Orientation="Horizontal">
+                        <ItemsControl x:Name="WhiteCapturedPieces">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding}" Width="20" Height="20" Margin="1"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Pontuação (opcional) -->
+                <TextBlock Grid.Column="2" 
+                           Text="+0" 
+                           Foreground="White" 
+                           FontWeight="Bold" 
+                           VerticalAlignment="Center" 
+                           Margin="5,0"/>
+
+                <!-- Relógio -->
+                <Border Grid.Column="3" 
+                        Background="{StaticResource ButtonColor}" 
+                        CornerRadius="5" 
+                        MinWidth="80" 
+                        Margin="5" 
+                        Padding="10,5"
+                        BorderBrush="{StaticResource StrokeColor}">
+                    <TextBlock x:Name="WhiteClock" 
+                               Text="10:00" 
+                               Foreground="White" 
+                               FontSize="18" 
+                               FontWeight="Bold" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>
