@@ -94,7 +94,7 @@
             <Setter Property="ItemsPanel">
                 <Setter.Value>
                     <ItemsPanelTemplate>
-                        <WrapPanel Width="180"/>
+                        <WrapPanel Width="210"/>
                     </ItemsPanelTemplate>
                 </Setter.Value>
             </Setter>
@@ -136,6 +136,26 @@
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PlayButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource ButtonColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Height" Value="45"/>
+            <Setter Property="Width" Value="190"/>
+            <Setter Property="Margin" Value="0,20,0,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                                VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -229,15 +249,20 @@
     
         <Grid Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="225"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="225"/>
             </Grid.ColumnDefinitions>
         
-        <Border Grid.Column="0" Grid.Row="1">
-            <Button Content="Jogar" Click="StartGameButton_Click" Background="{StaticResource ButtonColor}" Foreground="White" FontSize="16" Height="50"/>
-        </Border>
-        <Viewbox Grid.Column="1" Grid.Row="1" Width="875" Height="875">
+        <StackPanel Grid.Column="0" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="Modo de Jogo" 
+                        Foreground="White" 
+                        FontSize="16" 
+                        VerticalAlignment="Center"/>
+            <ComboBox x:Name="GameTypeComboBox" Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
+           <Button Content="Jogar"  Click="StartGameButton_Click" x:Name="StartGameButton" Style="{StaticResource PlayButtonStyle}"/>            
+        </StackPanel>
+        <Viewbox Grid.Column="1" Grid.Row="1" Width="875" Height="875" Margin="100,0,100,0">
             <Grid x:Name="BoardGrid" 
                   Width="600" 
                   Height="600"
@@ -265,21 +290,21 @@
                         VerticalAlignment="Center"/>
             <ComboBox x:Name="BoardThemeComboBox" 
                         SelectionChanged="BoardThemeComboBox_SelectionChanged" 
-                        Style="{StaticResource ThemeComboBoxStyle}" Width="300"/>
+                        Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
             <TextBlock Text="Peças" 
                         Foreground="White" 
                         FontSize="16" 
                         VerticalAlignment="Center"/>
             <ComboBox x:Name="PieceThemeComboBox" 
                         SelectionChanged="PieceThemeComboBox_SelectionChanged"
-                        Style="{StaticResource ThemeComboBoxStyle}"/>
+                        Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
             <TextBlock Text="Tema" 
                         Foreground="White" 
                         FontSize="16" 
                         VerticalAlignment="Center"/>
             <ComboBox x:Name="ColorThemeComboBox" 
                         SelectionChanged="ColorThemeComboBox_SelectionChanged"
-                        Style="{StaticResource ThemeComboBoxStyle}"/>
+                        Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
         </StackPanel>
 
         </Grid>

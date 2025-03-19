@@ -14,14 +14,14 @@ public class CapturedPiecesTracker
     private int whiteMaterialAdvantage = 0;
 
     private static readonly Dictionary<PieceType, int> pieceValues = new Dictionary<PieceType, int>
-        {
-            { PieceType.Pawn, 1 },
-            { PieceType.Knight, 3 },
-            { PieceType.Bishop, 3 },
-            { PieceType.Rook, 5 },
-            { PieceType.Queen, 9 },
-            { PieceType.King, 0 } 
-        };
+    {
+        { PieceType.Pawn, 1 },
+        { PieceType.Knight, 3 },
+        { PieceType.Bishop, 3 },
+        { PieceType.Rook, 5 },
+        { PieceType.Queen, 9 },
+        { PieceType.King, 0 } 
+    };
 
     public CapturedPiecesTracker()
     {
