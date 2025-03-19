@@ -259,7 +259,7 @@
                         Foreground="White" 
                         FontSize="16" 
                         VerticalAlignment="Center"/>
-            <ComboBox x:Name="GameTypeComboBox" Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
+                <ComboBox x:Name="GameTypeComboBox" Style="{StaticResource ThemeComboBoxStyle}" Width="190" SelectionChanged="GameTypeComboBox_SelectionChanged"/>
            <Button Content="Jogar"  Click="StartGameButton_Click" x:Name="StartGameButton" Style="{StaticResource PlayButtonStyle}"/>            
         </StackPanel>
         <Viewbox Grid.Column="1" Grid.Row="1" Width="875" Height="875" Margin="100,0,100,0">

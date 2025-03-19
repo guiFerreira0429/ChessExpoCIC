@@ -38,14 +38,60 @@ namespace ChessLogic
             pawnSkipPositions[player] = pos;
         }
 
-        public static Board Initial()
+        public static Board Initial(GameType gameType)
         { 
             Board board = new Board();
-            board.AddStartPieces();
+            board.AddStartPieces(gameType);
             return board;
         }
 
-        private void AddStartPieces()
+        private void AddStartPieces(GameType gameType)
+        {
+            if (gameType == GameType.Mixed )
+            {
+                SetupRandomBoard();
+            }
+            else if(gameType == GameType.DragDrop) 
+            {
+
+            }
+            else
+            {
+                SetupRegularBoard();
+            }
+        }
+
+        private void SetupRandomBoard()
+        {
+            var pieces = new List<Func<Player, Piece>>
+            {
+                p => new Rook(p),
+                p => new Knight(p),
+                p => new Bishop(p),
+                p => new Queen(p),
+                p => new King(p),
+                p => new Bishop(p),
+                p => new Knight(p),
+                p => new Rook(p)
+            };
+
+            var random = new Random();
+            pieces = [.. pieces.OrderBy(x => random.Next())];
+
+            for (int c = 0; c < 8; c++)
+            {
+                this[0, c] = pieces[c](Player.Black);
+                this[1, c] = new Pawn(Player.Black);
+            }
+
+            for (int c = 0; c < 8; c++)
+            {
+                this[7, c] = pieces[c](Player.White);
+                this[6, c] = new Pawn(Player.White);
+            }
+        }
+
+        private void SetupRegularBoard()
         {
             this[0, 0] = new Rook(Player.Black);
             this[0, 1] = new Knight(Player.Black);
@@ -65,7 +111,7 @@ namespace ChessLogic
             this[7, 6] = new Knight(Player.White);
             this[7, 7] = new Rook(Player.White);
 
-            for(int c =  0; c < 8; c++)
+            for (int c = 0; c < 8; c++)
             {
                 this[1, c] = new Pawn(Player.Black);
                 this[6, c] = new Pawn(Player.White);
@@ -174,13 +220,6 @@ namespace ChessLogic
                 && counting.White(PieceType.Bishop) == 1 && counting.Black(PieceType.Bishop) == 1;
         }
 
-        // Antes estava assi, mas falta a verificação de nulo, indiano calhau >:(
-        //private Position FindPiece(Player color, PieceType type)
-        //{
-        //    return PiecePositionsFor(color).First(pos => this[pos].Type == type);
-        //}
-
-        // First or Default resolve isso :)
         private Position FindPiece(Player color, PieceType type)
         {
             return PiecePositionsFor(color).FirstOrDefault(pos => this[pos].Type == type);

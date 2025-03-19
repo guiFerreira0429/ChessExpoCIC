@@ -49,7 +49,7 @@ public static class PieceThemeHelper
     private static readonly Dictionary<PieceType, ImageSource> whiteSources = [];
     private static readonly Dictionary<PieceType, ImageSource> blackSources = [];
 
-    public static string PieceUrl { get; set; } = "assets/pieces/anarcandy/";
+    public static string PieceUrl { get; set; }
 
     public static void LoadPieceImages() 
     {
@@ -77,19 +77,35 @@ public static class PieceThemeHelper
         LoadPieceImages();
     }
 
-    public static ImageSource GetImage(Player color, PieceType type)
+    public static ImageSource GetImage(Player color, PieceType type, GameType gameType)
     {
-        return color switch
+        if (gameType == GameType.Disguised)
         {
-            Player.White => whiteSources[type],
-            Player.Black => blackSources[type],
-            _ => null
-        };
+            return color switch
+            {
+                Player.White => Images.LoadSvg($"assets/pieces/disguised/w.svg"),
+                Player.Black => Images.LoadSvg($"assets/pieces/disguised/b.svg"),
+                _ => null
+            };
+        }
+        else if (gameType == GameType.Mono)
+        {
+            return Images.LoadSvg($"assets/pieces/mono/{GetPieceCode(type)}.svg");
+        }
+        else
+        {
+            return color switch
+            {
+                Player.White => whiteSources[type],
+                Player.Black => blackSources[type],
+                _ => null
+            };
+        }
     }
 
-    public static ImageSource GetImage(Piece piece)
+    public static ImageSource GetImage(Piece piece, GameType gameType)
     {
-        return piece == null ? null : GetImage(piece.Color, piece.Type);
+        return piece == null ? null : GetImage(piece.Color, piece.Type, gameType);
     }
 }
 

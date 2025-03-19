@@ -21,6 +21,9 @@ public partial class MainWindow : Window
     public static string PieceUrl;
     public static PieceTheme SelectedPieceTheme;
 
+    public static ColorTheme SelectedColorTheme;
+    public static GameType SelectedGameType;
+
     private readonly Image[,] pieceImages = new Image[8, 8];
     private readonly Rectangle[,] highlights = new Rectangle[8, 8];
     private readonly Dictionary<Position, Move> moveCache = [];
@@ -42,7 +45,16 @@ public partial class MainWindow : Window
     private string whitePlayerName = "Jogador Branco";
     private string blackPlayerName = "Jogador Preto";
 
-    private bool gameInProgress = false;
+    private bool _gameInProgress = false;
+    public bool gameInProgress
+    {
+        get { return _gameInProgress; }
+        set
+        {
+            _gameInProgress = value;
+            GameTypeComboBox.IsEnabled = !value;
+        }
+    }
 
     public MainWindow()
     {
@@ -53,7 +65,7 @@ public partial class MainWindow : Window
         Loading = true;
         Instance = this;
 
-        gameState = new GameState(Player.White, Board.Initial());
+        gameState = new GameState(Player.White, Board.Initial(GameType.Default));
         PieceThemeHelper.LoadPieceImages();
 
         InitializeUI();
@@ -95,7 +107,7 @@ public partial class MainWindow : Window
             for (int c = 0; c < 8; c++)
             {
                 Piece piece = board[r, c];
-                pieceImages[r, c].Source = PieceThemeHelper.GetImage(piece);
+                pieceImages[r, c].Source = PieceThemeHelper.GetImage(piece, SelectedGameType);
             }
         }
     }
@@ -152,7 +164,7 @@ public partial class MainWindow : Window
 
     private void HandlePromotion(Position from, Position to)
     {
-        pieceImages[to.Row, to.Column].Source = PieceThemeHelper.GetImage(gameState.CurrentPlayer, PieceType.Pawn);
+        pieceImages[to.Row, to.Column].Source = PieceThemeHelper.GetImage(gameState.CurrentPlayer, PieceType.Pawn, GameType.Default);
         pieceImages[from.Row, from.Column].Source = null;
 
         PromotionMenu promMenu = new(gameState.CurrentPlayer);
@@ -256,7 +268,7 @@ public partial class MainWindow : Window
         selectedPos = null;
         HideHighlights();
         moveCache.Clear();
-        gameState = new GameState(Player.White, Board.Initial());
+        gameState = new GameState(Player.White, Board.Initial(SelectedGameType));
         DrawBoard(gameState.Board);
         SetCursor(gameState.CurrentPlayer);
     }
@@ -387,8 +399,8 @@ public partial class MainWindow : Window
             if (BoardThemeComboBox.SelectedItem != null)
             {
                 dynamic item = BoardThemeComboBox.SelectedItem;
-                BoardTheme selectedTheme = item.Theme;
-                BoardThemeHelper.ChangeBoardTheme(selectedTheme);
+                SelectedBoardTheme = item.Theme;
+                BoardThemeHelper.ChangeBoardTheme(SelectedBoardTheme);
             }
         }
     }
@@ -400,8 +412,8 @@ public partial class MainWindow : Window
             if (PieceThemeComboBox.SelectedItem != null)
             {
                 dynamic item = PieceThemeComboBox.SelectedItem;
-                PieceTheme selectedTheme = item.Theme;
-                PieceThemeHelper.ChangePieceTheme(selectedTheme);
+                SelectedPieceTheme = item.Theme;
+                PieceThemeHelper.ChangePieceTheme(SelectedPieceTheme);
                 PieceThemeHelper.LoadPieceImages();
                 if (gameState != null)
                 {
@@ -418,11 +430,11 @@ public partial class MainWindow : Window
             if (ColorThemeComboBox.SelectedItem != null)
             {
                 dynamic item = ColorThemeComboBox.SelectedItem;
-                ColorTheme selectedTheme = item.Theme;
+                SelectedColorTheme = item.Theme;
 
                 try
                 {
-                    ColorThemeHelper.ApplyTheme(selectedTheme);
+                    ColorThemeHelper.ApplyTheme(SelectedColorTheme);
                 }
                 catch (Exception ex)
                 {
@@ -432,13 +444,35 @@ public partial class MainWindow : Window
         }
     }
 
+    private void GameTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!Loading)
+        {
+            if (GameTypeComboBox.SelectedItem != null)
+            {
+                dynamic item = GameTypeComboBox.SelectedItem;
+                SelectedGameType = item.Theme;
+                if (SelectedGameType == GameType.Disguised || SelectedGameType == GameType.Mono)
+                {
+                    PieceThemeComboBox.IsEnabled = false;
+                }
+                else
+                {
+                    PieceThemeComboBox.IsEnabled = true;
+                }
+                gameState = new GameState(Player.White, Board.Initial(SelectedGameType));
+                DrawBoard(gameState.Board);
+            }
+        }
+    }
+
 
     private void StartGameButton_Click(object sender, RoutedEventArgs e)
     {
         if (!gameInProgress)
         {
-            string gameType = GameTypeComboBox.SelectedItem != null ?
-                        (GameTypeComboBox.SelectedItem as dynamic).Name : "Default";
+            GameType gameType = GameTypeComboBox.SelectedItem != null ?
+                        (GameTypeComboBox.SelectedItem as dynamic).Theme : GameType.Default;
 
             StartGame(gameType);
 
@@ -458,7 +492,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void StartGame(string gameType)
+    private void StartGame(GameType gameType)
     {
         whiteCapturedPieces.Clear();
         blackCapturedPieces.Clear();
@@ -481,7 +515,7 @@ public partial class MainWindow : Window
     {
         gameState.PauseGame();
 
-        //ChessBoard.IsEnabled = false;
+        //gameState.IsEnabled = false;
 
         //ShowPauseOverlay();
     }

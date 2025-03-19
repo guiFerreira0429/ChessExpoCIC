@@ -24,15 +24,16 @@ public class GameState
         stateString = new StateString(CurrentPlayer, board).ToString();
         stateHistory[stateString] = 1;
 
-        Timer = new ChessTimer(600);
-        CapturedPieces = new CapturedPiecesTracker();
-        TimerEnabled = false;
+        //Timer = new ChessTimer(600);
+        //Timer.OnTimeUpdated += UpdateClockDisplay;
+        ////CapturedPieces = new CapturedPiecesTracker();
+        //TimerEnabled = false;
     }
 
     public GameState(Player player, Board board, int timeInSeconds, int incrementInSeconds = 0)
             : this(player, board)
     {
-        Timer = new ChessTimer(timeInSeconds, incrementInSeconds);
+        //Timer = new ChessTimer(timeInSeconds, incrementInSeconds);
         TimerEnabled = true;
     }
 
@@ -189,7 +190,19 @@ public class GameState
 
     public void SetTimeControl(int timeInSeconds, int incrementInSeconds = 0)
     {
-        Timer = new ChessTimer(timeInSeconds, incrementInSeconds);
+        //Timer = new ChessTimer(timeInSeconds, incrementInSeconds);
         TimerEnabled = true;
+    }
+
+    private void UpdateClockDisplay(Player player, string formattedTime)
+    {
+        if (player == Player.White)
+        {
+            //MainWindow.Instance.WhiteClock.Content = formattedTime;
+        }
+        else if (player == Player.Black)
+        {
+            //MainWindow.Instance.BlackClock.Content = formattedTime;
+        }
     }
 }

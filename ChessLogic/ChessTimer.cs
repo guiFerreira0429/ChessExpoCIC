@@ -21,6 +21,8 @@ public class ChessTimer
 
     private DateTime lastTimestamp;
 
+    public event Action<Player, string> OnTimeUpdated;
+
     public ChessTimer(int initialTimeInSeconds, int incrementInSeconds = 0)
     {
         InitialTime = initialTimeInSeconds;
@@ -97,10 +99,12 @@ public class ChessTimer
         if (ActiveClock == Player.White)
         {
             RemainingTimeWhite = Math.Max(0, RemainingTimeWhite - secondsElapsed);
+            GetFormattedTime(Player.White);
         }
         else if (ActiveClock == Player.Black)
         {
             RemainingTimeBlack = Math.Max(0, RemainingTimeBlack - secondsElapsed);
+            GetFormattedTime(Player.Black);
         }
 
         lastTimestamp = DateTime.Now;
@@ -126,15 +130,13 @@ public class ChessTimer
         return false;
     }
 
-    public string GetFormattedTime(Player player)
+    private void GetFormattedTime(Player player)
     {
-        UpdateRemainingTime();
-
         int seconds = player == Player.White ? RemainingTimeWhite : RemainingTimeBlack;
-
         int minutes = seconds / 60;
         int remainingSeconds = seconds % 60;
+        string formattedTime = $"{minutes:D2}:{remainingSeconds:D2}";
 
-        return $"{minutes:D2}:{remainingSeconds:D2}";
+        OnTimeUpdated?.Invoke(player, formattedTime);
     }
 }
