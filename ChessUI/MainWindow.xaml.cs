@@ -12,6 +12,7 @@ namespace ChessUI;
 
 public partial class MainWindow : Window
 {
+    //kenguisse
     public static MainWindow Instance { get; private set; }
 
     private ChessTimer _chessTimer;
