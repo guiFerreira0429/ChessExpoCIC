@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessLogic;
+﻿namespace ChessLogic;
 
 public class DoublePawn : Move
 {
@@ -20,7 +14,7 @@ public class DoublePawn : Move
         ToPos = to;
         skippedPos = new Position((from.Row + to.Row) / 2, from.Column);
     }
-    
+
     public override bool Execute(Board board)
     {
         Player player = board[FromPos].Color;

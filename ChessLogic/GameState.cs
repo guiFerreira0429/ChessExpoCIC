@@ -2,9 +2,9 @@
 
 public class GameState
 {
-    public Board Board { get;  }
+    public Board Board { get; }
     public Player CurrentPlayer { get; private set; }
-    public Result Result { get; private set; } = null;
+    public Result Result { get; set; } = null;
 
     private int noCaptureOrPawnMoves = 0;
     private string stateString;
@@ -52,7 +52,7 @@ public class GameState
         {
             noCaptureOrPawnMoves = 0;
             stateHistory.Clear();
-        } 
+        }
         else
         {
             noCaptureOrPawnMoves++;

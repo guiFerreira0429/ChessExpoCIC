@@ -5,14 +5,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using ChessLogic;
-using System.Collections.ObjectModel;
 using System.Windows.Threading;
 
 namespace ChessUI;
 
 public partial class MainWindow : Window
 {
-    public static MainWindow Instance { get; private set; }
+    public static MainWindow Instance
+    {
+        get;
+        private set;
+    }
 
     private ChessTimer _chessTimer;
     private CapturedPiecesTracker _capturedPiecesTracker;
@@ -24,7 +27,7 @@ public partial class MainWindow : Window
     public static ColorTheme SelectedColorTheme;
     public static GameType SelectedGameType;
     public static GameDuration SelectedGameDuration;
-    public static GameIncrement SelectedGameIncrement; 
+    public static GameIncrement SelectedGameIncrement;
 
     private readonly Image[,] pieceImages = new Image[8, 8];
     private readonly Rectangle[,] highlights = new Rectangle[8, 8];
@@ -36,7 +39,10 @@ public partial class MainWindow : Window
     private bool _gameInProgress = false;
     public bool gameInProgress
     {
-        get { return _gameInProgress; }
+        get
+        {
+            return _gameInProgress;
+        }
         set
         {
             _gameInProgress = value;
@@ -52,6 +58,7 @@ public partial class MainWindow : Window
 
         _chessTimer = new ChessTimer(GameDuration.Default, GameIncrement.Default);
         _chessTimer.OnTimeUpdated += ChessTimer_Tick;
+        _chessTimer.OnGameOver += ShowGameOver;
 
         _capturedPiecesTracker = new CapturedPiecesTracker();
         _capturedPiecesTracker.OnTrackerUpdated += CapturedPieces_Change;
@@ -60,6 +67,7 @@ public partial class MainWindow : Window
         Instance = this;
 
         gameState = new GameState(Player.White, Board.Initial(GameType.Default), _capturedPiecesTracker);
+
         PieceThemeHelper.LoadPieceImages();
 
         InitializeUI();
@@ -154,14 +162,13 @@ public partial class MainWindow : Window
     private void HandlePromotion(Position from, Position to)
     {
         _chessTimer.Pause();
-        pieceImages[to.Row, to.Column].Source = PieceThemeHelper.GetImage(gameState.CurrentPlayer, PieceType.Pawn, GameType.Default);
+        pieceImages[to.Row, to.Column].Source = PieceThemeHelper.GetImage(gameState.CurrentPlayer, PieceType.Pawn, SelectedGameType);
         pieceImages[from.Row, from.Column].Source = null;
 
-        PromotionMenu promMenu = new(gameState.CurrentPlayer);
+        PromotionMenu promMenu = new(gameState.CurrentPlayer, SelectedGameType);
         MenuContainer.Content = promMenu;
 
-        promMenu.PieceSelected += type =>
-        {
+        promMenu.PieceSelected += type => {
             MenuContainer.Content = null;
             Move promMove = new PawnPromotion(from, to, type);
             _chessTimer.Start();
@@ -174,6 +181,20 @@ public partial class MainWindow : Window
         DrawBoard(gameState.Board);
         SetCursor(gameState.CurrentPlayer);
         _chessTimer.ChangePlayer();
+        Dispatcher.Invoke(() => 
+        {
+            WhiteClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+            BlackClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+
+            if(gameState.CurrentPlayer == Player.White)
+            {
+                WhiteClockBorder.Background = (SolidColorBrush)Application.Current.Resources["TextColor"];
+            }
+            else
+            {
+                BlackClockBorder.Background = (SolidColorBrush)Application.Current.Resources["TextColor"];
+            }
+        });
 
         if (gameState.IsGameOver())
         {
@@ -228,26 +249,34 @@ public partial class MainWindow : Window
     {
         return MenuContainer.Content != null;
     }
-    private void ShowGameOver()
+    private void ShowGameOver(EndReason endReason = EndReason.None)
     {
-        GameOverMenu gameOverMenu = new GameOverMenu(gameState);
-        MenuContainer.Content = gameOverMenu;
-
-        gameOverMenu.OptionSelected += option =>
+        if (EndReason.TimeOut == endReason)
         {
-            if (option == Option.Restart)
+            gameState.Result = Result.Win(gameState.CurrentPlayer.Opponent(), EndReason.TimeOut);
+        }
+        Dispatcher.Invoke(() =>
+        {
+            GameOverMenu gameOverMenu = new GameOverMenu(gameState);
+            MenuContainer.Content = gameOverMenu;
+
+            gameOverMenu.OptionSelected += option =>
             {
-                MenuContainer.Content = null;
-                RestartGame();
-            }
-            else
-            {
-                Application.Current.Shutdown();
-            }
-        };
+                if (option == Option.Restart)
+                {
+                    MenuContainer.Content = null;
+                    RestartGame();
+                }
+                else
+                {
+                    Application.Current.Shutdown();
+                }
+            };
+        });
     }
     private void RestartGame()
     {
+        ResetUI();
         selectedPos = null;
         HideHighlights();
         moveCache.Clear();
@@ -269,8 +298,7 @@ public partial class MainWindow : Window
         PauseMenu pauseMenu = new();
         MenuContainer.Content = pauseMenu;
 
-        pauseMenu.OptionSelected += option =>
-        {
+        pauseMenu.OptionSelected += option => {
             MenuContainer.Content = null;
 
             if (option == Option.Restart)
@@ -281,86 +309,91 @@ public partial class MainWindow : Window
     }
     private void InitializeUI()
     {
-        BoardThemeComboBox.Items.Clear();
-        PieceThemeComboBox.Items.Clear();
-        ColorThemeComboBox.Items.Clear();
-        GameTypeComboBox.Items.Clear();
-        GameDurationComboBox.Items.Clear();
-        GameIncrementComboBox.Items.Clear();
+        Dispatcher.Invoke(() => 
+        {
+            BoardThemeComboBox.Items.Clear();
+            PieceThemeComboBox.Items.Clear();
+            ColorThemeComboBox.Items.Clear();
+            GameTypeComboBox.Items.Clear();
+            GameDurationComboBox.Items.Clear();
+            GameIncrementComboBox.Items.Clear();
 
-        foreach (BoardTheme theme in Enum.GetValues(typeof(BoardTheme)))
-        {
-            BoardThemeComboBox.Items.Add(new
+            foreach (BoardTheme theme in Enum.GetValues(typeof(BoardTheme)))
             {
-                Theme = theme,
-                Name = theme.ToString(),
-                ThumbnailPath = GetBoardThumbnailPath(theme)
-            });
-        }
-        foreach (PieceTheme theme in Enum.GetValues(typeof(PieceTheme)))
-        {
-            if (theme != PieceTheme.Mono && theme != PieceTheme.Disguised)
-            {
-                PieceThemeComboBox.Items.Add(new
+                BoardThemeComboBox.Items.Add(new
                 {
                     Theme = theme,
                     Name = theme.ToString(),
-                    ThumbnailPath = GetPieceThumbnailPath(theme)
+                    ThumbnailPath = GetBoardThumbnailPath(theme)
                 });
             }
-        }
-        var temas = ColorThemeHelper.GetAllThemes();
-        foreach (ColorThemeInfo themeInfo in temas)
-        {
-            ColorThemeComboBox.Items.Add(new
+            foreach (PieceTheme theme in Enum.GetValues(typeof(PieceTheme)))
             {
-                Theme = themeInfo.Theme,
-                Name = themeInfo.Name.ToString(),
-                ColorPreview = themeInfo.PreviewBrush
-            });
-        }
-        foreach (GameType gameType in Enum.GetValues(typeof(GameType)))
-        {
-            GameTypeComboBox.Items.Add(new
+                if (theme != PieceTheme.Mono && theme != PieceTheme.Disguised)
+                {
+                    PieceThemeComboBox.Items.Add(new
+                    {
+                        Theme = theme,
+                        Name = theme.ToString(),
+                        ThumbnailPath = GetPieceThumbnailPath(theme)
+                    });
+                }
+            }
+            var temas = ColorThemeHelper.GetAllThemes();
+            foreach (ColorThemeInfo themeInfo in temas)
             {
-                Theme = gameType,
-                Name = gameType.ToString(),
-                ThumbnailPath = GetGameTypeThumbnailPath(gameType)
-            });
-        }
-        foreach (GameDuration gameDuration in Enum.GetValues(typeof(GameDuration)))
-        {
-            GameDurationComboBox.Items.Add(new
+                ColorThemeComboBox.Items.Add(new
+                {
+                    Theme = themeInfo.Theme,
+                    Name = themeInfo.Name.ToString(),
+                    ColorPreview = themeInfo.PreviewBrush
+                });
+            }
+            foreach (GameType gameType in Enum.GetValues(typeof(GameType)))
             {
-                Duration = gameDuration,
-                Value = (int)gameDuration
-            });
-        }
-        foreach (GameIncrement gameIncrement in Enum.GetValues(typeof(GameIncrement)))
-        {
-            GameIncrementComboBox.Items.Add(new
+                GameTypeComboBox.Items.Add(new
+                {
+                    Theme = gameType,
+                    Name = gameType.ToString(),
+                    ThumbnailPath = GetGameTypeThumbnailPath(gameType)
+                });
+            }
+            foreach (GameDuration gameDuration in Enum.GetValues(typeof(GameDuration)))
             {
-                Increment = gameIncrement,
-                Value = (int)gameIncrement
-            });
-        }
+                GameDurationComboBox.Items.Add(new
+                {
+                    Duration = gameDuration,
+                    Value = (int)gameDuration
+                });
+            }
+            foreach (GameIncrement gameIncrement in Enum.GetValues(typeof(GameIncrement)))
+            {
+                GameIncrementComboBox.Items.Add(new
+                {
+                    Increment = gameIncrement,
+                    Value = (int)gameIncrement
+                });
+            }
 
-        BoardThemeComboBox.SelectedIndex = (int)BoardTheme.Default;
-        PieceThemeComboBox.SelectedIndex = (int)PieceTheme.Default;
-        ColorThemeComboBox.SelectedIndex = (int)ColorTheme.Default;
-        GameTypeComboBox.SelectedIndex = (int)GameType.Default;
-        GameDurationComboBox.SelectedIndex = (int)GameDuration.Default;
-        GameIncrementComboBox.SelectedIndex = (int)GameIncrement.Default;
+            BoardThemeComboBox.SelectedIndex = (int)BoardTheme.Default;
+            PieceThemeComboBox.SelectedIndex = (int)PieceTheme.Default;
+            ColorThemeComboBox.SelectedIndex = (int)ColorTheme.Default;
+            GameTypeComboBox.SelectedIndex = (int)GameType.Default;
+            GameDurationComboBox.SelectedIndex = (int)GameDuration.Default;
+            GameIncrementComboBox.SelectedIndex = (int)GameIncrement.Default;
+        });
     }
     private void ResetUI()
     {
+        HideHighlights();
         _chessTimer.Reset();
         _chessTimer.ActiveClock = Player.White;
         _capturedPiecesTracker.Reset();
-        Dispatcher.Invoke(() =>
-        {
+        Dispatcher.Invoke(() => {
             StartGameButton.Content = "Jogar";
             StartGameButton.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+            WhiteClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+            BlackClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
 
             WhiteCapturedPieces.Items.Clear();
             BlackCapturedPieces.Items.Clear();
@@ -375,13 +408,13 @@ public partial class MainWindow : Window
     private ImageSource GetBoardThumbnailPath(BoardTheme theme)
     {
         string basePath = $"Assets/Boards/{theme.ToString().ToLower()}";
-        if (File.Exists($"{basePath}_thumbnail.png"))
+        if (File.Exists($"{basePath}.png"))
         {
-            return Images.LoadImage($"{basePath}_thumbnail.png");
+            return Images.LoadImage($"{basePath}.png");
         }
-        else if (File.Exists($"{basePath}_thumbnail.jpg"))
+        else if (File.Exists($"{basePath}.jpg"))
         {
-            return Images.LoadImage($"{basePath}_thumbnail.jpg");
+            return Images.LoadImage($"{basePath}.jpg");
         }
 
         return Images.LoadImage(BoardThemeHelper.GetBoardTexturePath(theme));
@@ -394,14 +427,16 @@ public partial class MainWindow : Window
     private ImageSource GetGameTypeThumbnailPath(GameType gameType)
     {
         string basePath = "Assets/Pieces/";
-        return Images.LoadSvg(gameType switch
+        return Images.LoadSvg(gameType
+            switch
         {
             GameType.Default => $"{basePath}default/wN.svg",
-            GameType.Disguised => $"{basePath}disguised/w.svg",
-            GameType.Mono => $"{basePath}mono/N.svg",
-            GameType.Mixed => $"{basePath}anarcandy/wN.svg",
-            _ => throw new ArgumentException("Tipo de Jogo Inválido", nameof(gameType))
-        });
+                    GameType.Disguised => $"{basePath}disguised/w.svg",
+                    GameType.Mono => $"{basePath}mono/N.svg",
+                    GameType.Mixed => $"{basePath}anarcandy/wN.svg",
+                    _ =>
+                    throw new ArgumentException("Tipo de Jogo Inválido", nameof(gameType))
+            });
     }
     private void BoardThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -477,7 +512,7 @@ public partial class MainWindow : Window
     {
         if (!Loading)
         {
-            if(GameDurationComboBox.SelectedItem != null)
+            if (GameDurationComboBox.SelectedItem != null)
             {
                 dynamic item = GameDurationComboBox.SelectedItem;
                 SelectedGameDuration = item.Duration;
@@ -505,7 +540,7 @@ public partial class MainWindow : Window
         if (!gameInProgress)
         {
             GameType gameType = GameTypeComboBox.SelectedItem != null ?
-                        (GameTypeComboBox.SelectedItem as dynamic).Theme : GameType.Default;
+                (GameTypeComboBox.SelectedItem as dynamic).Theme : GameType.Default;
 
             StartGameButton.Content = "Pausar";
             StartGameButton.Background = new SolidColorBrush(Colors.Orange);
@@ -523,11 +558,25 @@ public partial class MainWindow : Window
 
             gameInProgress = false;
         }
-    }
-    private void ChessTimer_Tick(Player player, int seconds) 
-    {
+
         Dispatcher.Invoke(() =>
         {
+            WhiteClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+            BlackClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+
+            if (gameState.CurrentPlayer == Player.White)
+            {
+                WhiteClockBorder.Background = (SolidColorBrush)Application.Current.Resources["TextColor"];
+            }
+            else
+            {
+                BlackClockBorder.Background = (SolidColorBrush)Application.Current.Resources["TextColor"];
+            }
+        });
+    }
+    private void ChessTimer_Tick(Player player, int seconds)
+    {
+        Dispatcher.Invoke(() => {
             if (!gameInProgress)
             {
                 return;
@@ -536,20 +585,19 @@ public partial class MainWindow : Window
             {
                 string formatedTime = FormatTime(seconds);
                 if (player == Player.White)
-                {      
-                        WhiteClock.Text = formatedTime;
+                {
+                    WhiteClock.Text = formatedTime;
                 }
                 else
                 {
-                       BlackClock.Text = formatedTime;
+                    BlackClock.Text = formatedTime;
                 }
             }
         });
     }
     private void CapturedPieces_Change(List<Piece> capturedByWhite, List<Piece> capturedByBlack, int materialAdvantage)
     {
-        Dispatcher.Invoke(() =>
-        {
+        Dispatcher.Invoke(() => {
             WhiteCapturedPieces.Items.Clear();
             BlackCapturedPieces.Items.Clear();
 
@@ -577,7 +625,7 @@ public partial class MainWindow : Window
 
             if (materialAdvantage > 0)
             {
-                
+
                 WhiteAdvantage.Visibility = Visibility.Visible;
                 WhiteAdvantage.Text = $"+{materialAdvantage}";
             }
@@ -598,12 +646,14 @@ public partial class MainWindow : Window
     private void ApplyTheme(ColorTheme theme)
     {
         ColorThemeInfo themeInfo = ColorThemeHelper.GetThemeInfo(theme);
-        Dispatcher.Invoke(() =>
-        {
+        Dispatcher.Invoke(() => {
             Application.Current.Resources["StrokeColor"] = new SolidColorBrush(themeInfo.StrokeColor);
             Application.Current.Resources["FillColor"] = new SolidColorBrush(themeInfo.FillColor);
             Application.Current.Resources["TextColor"] = new SolidColorBrush(themeInfo.TextColor);
             Application.Current.Resources["ButtonColor"] = new SolidColorBrush(themeInfo.ButtonColor);
+            StartGameButton.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+            WhiteClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
+            BlackClockBorder.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
         });
     }
 }

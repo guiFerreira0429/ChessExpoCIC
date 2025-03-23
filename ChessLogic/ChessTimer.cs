@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessLogic;
+﻿namespace ChessLogic;
 
 public class ChessTimer
 {
@@ -12,19 +6,21 @@ public class ChessTimer
     public int Increment;
 
     public int RemainingTimeWhite;
-    public int RemainingTimeBlack;  
+    public int RemainingTimeBlack;
 
     public Player ActiveClock;
 
     public bool IsPaused;
 
     public event Action<Player, int> OnTimeUpdated;
+    public event Action<EndReason> OnGameOver;
+
 
     private Timer _timer;
     private const int TickInterval = 1000;
 
     public ChessTimer(GameDuration initialTimeInSeconds, GameIncrement incrementInSeconds = 0, Player player = Player.White)
-    {
+    { 
         InitialTime = (int)initialTimeInSeconds;
         Increment = (int)incrementInSeconds;
         ActiveClock = player;
@@ -59,13 +55,14 @@ public class ChessTimer
         if (IsPaused)
         {
             return;
-        } 
+        }
 
         if (ActiveClock == Player.White)
         {
             RemainingTimeWhite--;
             if (RemainingTimeWhite == 0)
             {
+                OnGameOver?.Invoke(EndReason.TimeOut);
                 Pause();
             }
         }
@@ -74,6 +71,7 @@ public class ChessTimer
             RemainingTimeBlack--;
             if (RemainingTimeBlack == 0)
             {
+                OnGameOver?.Invoke(EndReason.TimeOut);
                 Pause();
             }
         }

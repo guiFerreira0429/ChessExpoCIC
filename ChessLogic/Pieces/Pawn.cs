@@ -26,8 +26,10 @@ public class Pawn : Piece
 
     public override Piece Copy()
     {
-        Pawn copy = new Pawn(Color);
-        copy.HasMoved = HasMoved;
+        Pawn copy = new(Color)
+        {
+            HasMoved = HasMoved
+        };
         return copy;
     }
 
@@ -76,7 +78,7 @@ public class Pawn : Piece
 
             if (!HasMoved && CanMoveTo(twoMovesPos, board))
             {
-                yield return new NormalMove(from, twoMovesPos);
+                yield return new DoublePawn(from, twoMovesPos);
             }
         }
     }

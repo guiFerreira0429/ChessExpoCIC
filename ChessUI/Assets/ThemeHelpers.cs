@@ -1,7 +1,6 @@
 ﻿using ChessLogic;
 using System.IO;
 using System.Windows.Media;
-using System.Windows;
 
 namespace ChessUI;
 
@@ -35,7 +34,7 @@ public static class BoardThemeHelper
     public static void ChangeBoardTheme(BoardTheme theme)
     {
         string newPath = GetBoardTexturePath(theme);
-        
+
         if (!String.IsNullOrEmpty(newPath))
         {
             MainWindow.BoardUrl = newPath;
@@ -51,7 +50,7 @@ public static class PieceThemeHelper
 
     public static string PieceUrl { get; set; }
 
-    public static void LoadPieceImages() 
+    public static void LoadPieceImages()
     {
         foreach (PieceType type in Enum.GetValues(typeof(PieceType)))
         {

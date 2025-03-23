@@ -25,9 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\Background\landscape.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
     <Resource Include="Assets\CursorB.cur" />
     <Resource Include="Assets\CursorW.cur" />
     <Resource Include="Assets\icon.ico" />
@@ -37,7 +34,7 @@
     <None Update="Assets\Boards\blue.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\Boards\blue_thumbnail.png">
+    <None Update="Assets\Boards\blue.thumbnail.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Assets\Boards\blue2.jpg">

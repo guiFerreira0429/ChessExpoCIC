@@ -1,16 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessLogic;
+﻿namespace ChessLogic;
 
 public class Castle : Move
 {
-    public override MoveType Type { get; }
-    public override Position FromPos { get; }
-    public override Position ToPos { get; }
+    public override MoveType Type
+    {
+        get;
+    }
+    public override Position FromPos
+    {
+        get;
+    }
+    public override Position ToPos
+    {
+        get;
+    }
 
     private readonly Direction kingMoveDir;
     private readonly Position rookFromPos;

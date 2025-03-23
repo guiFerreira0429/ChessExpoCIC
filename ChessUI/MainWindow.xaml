@@ -1,9 +1,9 @@
 ﻿<Window x:Class="ChessUI.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ChessUI"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:local="clr-namespace:ChessUI"
         mc:Ignorable="d"
         Title="Chess"  
         WindowState="Maximized"
@@ -15,7 +15,6 @@
         KeyDown="Window_KeyDown">
     <Window.Resources>
         <local:SelectedItemToBrushConverter x:Key="SelectedItemToBrushConverter"/>
-
         <ControlTemplate x:Key="ComboBoxToggleButtonTemplate" TargetType="ToggleButton">
             <Border Background="Transparent">
                 <Grid>
@@ -32,7 +31,6 @@
                 </Grid>
             </Border>
         </ControlTemplate>
-        
         <Style x:Key="ThemeComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Template">
                 <Setter.Value>
@@ -42,7 +40,6 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-
                             <!-- Header -->
                             <Grid Grid.Row="0" Margin="0,0,0,5">
                                 <Grid.ColumnDefinitions>
@@ -50,7 +47,6 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                             </Grid>
-
                             <!-- Content -->
                             <Border Grid.Row="2" 
                                     Background="{DynamicResource ButtonColor}" 
@@ -60,7 +56,6 @@
                                     <ToggleButton x:Name="ToggleButton" 
                                                   IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                                   Template="{StaticResource ComboBoxToggleButtonTemplate}"/>
-
                                     <ContentPresenter x:Name="ContentPresenter"
                                                       ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                                       Content="{TemplateBinding SelectionBoxItem}"
@@ -68,7 +63,6 @@
                                                       HorizontalAlignment="Left"
                                                       VerticalAlignment="Center"
                                                       Margin="5,0,0,0"/>
-
                                     <Popup x:Name="PART_Popup" 
                                            IsOpen="{TemplateBinding IsDropDownOpen}" 
                                            AllowsTransparency="True" 
@@ -100,7 +94,8 @@
             </Setter>
             <Setter Property="ItemTemplate">
                 <Setter.Value>
-                    <DataTemplate xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                    <DataTemplate
+						xmlns:sys="clr-namespace:System;assembly=mscorlib">
                         <Border Width="45" 
                                 Height="45" 
                                 Margin="2" 
@@ -112,11 +107,9 @@
                                        Stretch="Uniform" 
                                        Margin="5"
                                        Visibility="Visible"/>
-
                                 <Rectangle x:Name="PlaceholderShape" Fill="{Binding ColorPreview}" Width="30" Height="30" Visibility="Visible"/>
                             </Grid>
                         </Border>
-
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding ThumbnailPath}" Value="{x:Null}">
                                 <Setter TargetName="ThumbnailImage" Property="Visibility" Value="Collapsed"/>
@@ -160,8 +153,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-
-   <Grid Margin="50,5,50,5">
+    <Grid Margin="50,5,50,5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
@@ -172,8 +164,6 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        
         <Border Grid.Column="1" Grid.Row="0" 
                 Background="{DynamicResource FillColor}" 
                 BorderThickness="1" 
@@ -189,7 +179,6 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-            
                 <Border Grid.Column="0" 
                         Background="#333333" 
                         Width="50" 
@@ -199,10 +188,9 @@
                         BorderBrush="{DynamicResource StrokeColor}">
                     <Image x:Name="BlackPlayer"  Margin="10" />
                 </Border>
-            
                 <!-- Nome e Peças Capturadas -->
-                <TextBlock  Grid.Column="1" Margin="10,0,0,0" Text="Jogador Preto" Foreground="White" FontWeight="Bold" FontSize="14"/>
-                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                <TextBlock  Grid.Column="1" Margin="10,0,0,0" Text="Jogador Preto" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0,0,0">
                     <StackPanel Orientation="Horizontal">
                         <ItemsControl x:Name="BlackCapturedPieces">
                             <ItemsControl.ItemsPanel>
@@ -218,7 +206,6 @@
                         </ItemsControl>
                     </StackPanel>
                 </StackPanel>
-            
                 <!-- Pontuação (opcional) -->
                 <TextBlock Grid.Column="3"
                            x:Name="BlackAdvantage"
@@ -227,16 +214,15 @@
                            FontWeight="Bold" 
                            VerticalAlignment="Center" 
                            Margin="5,0"/>
-            
                 <!-- Relógio -->
                 <Border Grid.Column="4" 
+                        x:Name="BlackClockBorder"
                         Background="{DynamicResource ButtonColor}" 
                         CornerRadius="5" 
                         MinWidth="80" 
                         Margin="5" 
                         Padding="10,5"
                         BorderBrush="{DynamicResource StrokeColor}">
-
                     <TextBlock x:Name="BlackClock" 
                                Text="10:00" 
                                Foreground="White" 
@@ -247,26 +233,24 @@
                 </Border>
             </Grid>
         </Border>
-    
         <Grid Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="225"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="225"/>
             </Grid.ColumnDefinitions>
-        
-        <StackPanel Grid.Column="0" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Modo de Jogo" 
+            <StackPanel Grid.Column="0" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="Modo de Jogo" 
                         Foreground="White" 
                         FontSize="16" 
                         VerticalAlignment="Center"/>
-            <ComboBox x:Name="GameTypeComboBox" Style="{StaticResource ThemeComboBoxStyle}" Width="190" SelectionChanged="GameTypeComboBox_SelectionChanged"/>
+                <ComboBox x:Name="GameTypeComboBox" Style="{StaticResource ThemeComboBoxStyle}" Width="190" SelectionChanged="GameTypeComboBox_SelectionChanged"/>
                 <TextBlock Text="Duração da Partida" 
                Foreground="White" 
                FontSize="16" 
                VerticalAlignment="Center"
                Margin="0,10,0,0"/>
-                <ComboBox x:Name="GameDurationComboBox" SelectionChanged="GameDurationComboBox_SelectionChanged"  Style="{StaticResource ThemeComboBoxStyle}" Width="190">
+                <ComboBox x:Name="GameDurationComboBox" SelectionChanged="GameDurationComboBox_SelectionChanged"  Style="{StaticResource ThemeComboBoxStyle}" Width="190" Height="50">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Value}" Foreground="White" />
@@ -278,60 +262,56 @@
                FontSize="16" 
                VerticalAlignment="Center"
                Margin="0,10,0,0"/>
-                <ComboBox x:Name="GameIncrementComboBox" SelectionChanged="GameIncrementComboBox_SelectionChanged" Style="{StaticResource ThemeComboBoxStyle}" Width="190">
+                <ComboBox x:Name="GameIncrementComboBox" SelectionChanged="GameIncrementComboBox_SelectionChanged" Style="{StaticResource ThemeComboBoxStyle}" Width="190" Height="50">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Value}" Foreground="White" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Button Content="Jogar"  Click="StartGameButton_Click" x:Name="StartGameButton" Style="{StaticResource PlayButtonStyle}"/>            
-        </StackPanel>
-        <Viewbox Grid.Column="1" Grid.Row="1" Width="875" Height="875" Margin="100,0,100,0">
-            <Grid x:Name="BoardGrid" 
+                <Button Content="Jogar"  Click="StartGameButton_Click" x:Name="StartGameButton" Style="{StaticResource PlayButtonStyle}"/>
+            </StackPanel>
+            <Viewbox Grid.Column="1" Grid.Row="1" Width="875" Height="875" Margin="100,0,100,0">
+                <Grid x:Name="BoardGrid" 
                   Width="600" 
                   Height="600"
                   MouseDown="BoardGrid_MouseDown">
-                <Grid.Background>
-                    <ImageBrush x:Name="BoardGridBrush"/>
-                </Grid.Background>
-                <UniformGrid x:Name="HighlightGrid" 
+                    <Grid.Background>
+                        <ImageBrush x:Name="BoardGridBrush"/>
+                    </Grid.Background>
+                    <UniformGrid x:Name="HighlightGrid" 
                              Rows="8"
-                             Columns="8">
-                </UniformGrid>
-                <UniformGrid x:Name="PieceGrid"
+                             Columns="8"></UniformGrid>
+                    <UniformGrid x:Name="PieceGrid"
                              Rows="8"
                              Columns="8"
-                             RenderOptions.BitmapScalingMode="HighQuality">
-                </UniformGrid>
-                <ContentControl x:Name="MenuContainer"/>
-            </Grid>
-        </Viewbox>
-            
-        <StackPanel Grid.Column="2" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Tabuleiro" 
+                             RenderOptions.BitmapScalingMode="HighQuality"></UniformGrid>
+                    <ContentControl x:Name="MenuContainer"/>
+                </Grid>
+            </Viewbox>
+            <StackPanel Grid.Column="2" Grid.Row="1" Margin="10,0,10,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="Tabuleiro" 
                         Foreground="White" 
                         FontSize="16" 
                         VerticalAlignment="Center"/>
-            <ComboBox x:Name="BoardThemeComboBox" 
+                <ComboBox x:Name="BoardThemeComboBox" 
                         SelectionChanged="BoardThemeComboBox_SelectionChanged" 
                         Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
-            <TextBlock Text="Peças" 
+                <TextBlock Text="Peças" 
                         Foreground="White" 
                         FontSize="16" 
                         VerticalAlignment="Center"/>
-            <ComboBox x:Name="PieceThemeComboBox" 
+                <ComboBox x:Name="PieceThemeComboBox" 
                         SelectionChanged="PieceThemeComboBox_SelectionChanged"
                         Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
-            <TextBlock Text="Tema" 
+                <TextBlock Text="Tema" 
                         Foreground="White" 
                         FontSize="16" 
                         VerticalAlignment="Center"/>
-            <ComboBox x:Name="ColorThemeComboBox" 
+                <ComboBox x:Name="ColorThemeComboBox" 
                         SelectionChanged="ColorThemeComboBox_SelectionChanged"
                         Style="{StaticResource ThemeComboBoxStyle}" Width="190"/>
-        </StackPanel>
-
+            </StackPanel>
         </Grid>
         <Border Grid.Column="1" Grid.Row="2" 
                 Background="{DynamicResource FillColor}" 
@@ -343,11 +323,11 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
                 <!-- Identificação do Jogador Branco -->
                 <Border Grid.Column="0" 
                         Background="White" 
@@ -358,10 +338,9 @@
                         BorderBrush="{DynamicResource StrokeColor}">
                     <Image Source="Assets/Pieces/default/wK.svg" Margin="10"/>
                 </Border>
-
                 <!-- Nome e Peças Capturadas -->
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                    <TextBlock Text="Jogador Branco" Foreground="White" FontWeight="Bold" FontSize="14"/>
+                <TextBlock  Grid.Column="1" Margin="10,0,0,0" Text="Jogador Branco" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0,0,0">
                     <StackPanel Orientation="Horizontal">
                         <ItemsControl x:Name="WhiteCapturedPieces">
                             <ItemsControl.ItemsPanel>
@@ -377,18 +356,17 @@
                         </ItemsControl>
                     </StackPanel>
                 </StackPanel>
-
                 <!-- Pontuação (opcional) -->
-                <TextBlock Grid.Column="2" 
+                <TextBlock Grid.Column="3" 
                            x:Name="WhiteAdvantage"
                            Visibility="Collapsed"
                            Foreground="White" 
                            FontWeight="Bold" 
                            VerticalAlignment="Center" 
                            Margin="5,0"/>
-
                 <!-- Relógio -->
-                <Border Grid.Column="3" 
+                <Border Grid.Column="4" 
+                        x:Name="WhiteClockBorder"
                         Background="{DynamicResource ButtonColor}" 
                         CornerRadius="5" 
                         MinWidth="80" 

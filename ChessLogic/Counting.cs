@@ -5,7 +5,7 @@ public class Counting
     private readonly Dictionary<PieceType, int> whiteCount = new();
     private readonly Dictionary<PieceType, int> blackCount = new();
     public int TotalCount { get; private set; }
-    
+
     public Counting()
     {
         foreach (PieceType type in Enum.GetValues(typeof(PieceType)))

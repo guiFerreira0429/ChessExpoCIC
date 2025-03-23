@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessLogic;
+﻿namespace ChessLogic;
 
 public class CapturedPiecesTracker
 {
-    private List<Piece> capturedByWhite = new List<Piece>();
-    private List<Piece> capturedByBlack = new List<Piece>();
+    private List<Piece> capturedByWhite = [];
+    private List<Piece> capturedByBlack = [];
 
     private int materialAdvantage = 0;
 
@@ -22,7 +16,7 @@ public class CapturedPiecesTracker
         { PieceType.Bishop, 3 },
         { PieceType.Rook, 5 },
         { PieceType.Queen, 9 },
-        { PieceType.King, 0 } 
+        { PieceType.King, 0 }
     };
 
     public CapturedPiecesTracker()

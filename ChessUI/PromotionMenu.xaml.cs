@@ -1,24 +1,44 @@
 ﻿using ChessLogic;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace ChessUI;
 
-/// <summary>
-/// Interação lógica para PromotionMenu.xam
-/// </summary>
 public partial class PromotionMenu : UserControl
 {
     public event Action<PieceType> PieceSelected;
 
-    public PromotionMenu(Player player)
+    public PromotionMenu(Player player, GameType gameType)
     {
         InitializeComponent();
 
-        QueenImg.Source = PieceThemeHelper.GetImage(player, PieceType.Queen, GameType.Default);
-        BishopImg.Source = PieceThemeHelper.GetImage(player, PieceType.Bishop, GameType.Default);
-        RookImg.Source = PieceThemeHelper.GetImage(player, PieceType.Rook, GameType.Default);
-        KnightImg.Source = PieceThemeHelper.GetImage(player, PieceType.Knight, GameType.Default);
+        QueenImg.Source = PieceThemeHelper.GetImage(player, PieceType.Queen, gameType);
+        BishopImg.Source = PieceThemeHelper.GetImage(player, PieceType.Bishop, gameType);
+        RookImg.Source = PieceThemeHelper.GetImage(player, PieceType.Rook, gameType);
+        KnightImg.Source = PieceThemeHelper.GetImage(player, PieceType.Knight, gameType);
+
+        if (gameType == GameType.Disguised)
+        {
+            var images = new List<UIElement> {
+                QueenImg,
+                BishopImg,
+                RookImg,
+                KnightImg
+            };
+
+            PromotionGrid.Children.Clear();
+
+            Random random = new Random();
+            var shuffledImages = images.OrderBy(x => random.Next()).ToList();
+
+            Dispatcher.Invoke(() => {
+                foreach (var image in shuffledImages)
+                {
+                    PromotionGrid.Children.Add(image);
+                }
+            });
+        }
     }
 
     private void QueenImg_MouseDown(object sender, MouseButtonEventArgs e)

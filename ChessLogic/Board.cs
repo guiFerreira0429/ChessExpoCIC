@@ -33,7 +33,7 @@ public class Board
     }
 
     public static Board Initial(GameType gameType)
-    { 
+    {
         Board board = new Board();
         board.AddStartPieces(gameType);
         return board;
@@ -41,7 +41,7 @@ public class Board
 
     private void AddStartPieces(GameType gameType)
     {
-        if (gameType == GameType.Mixed )
+        if (gameType == GameType.Mixed)
         {
             SetupRandomBoard();
         }
@@ -152,7 +152,7 @@ public class Board
     {
         Board copy = new Board();
 
-        foreach(Position pos in PiecePositions())
+        foreach (Position pos in PiecePositions())
         {
             copy[pos] = this[pos].Copy();
         }
@@ -190,13 +190,13 @@ public class Board
 
     private static bool IsKingBishopVKing(Counting counting)
     {
-        return counting.TotalCount == 3 
+        return counting.TotalCount == 3
             && (counting.White(PieceType.Bishop) == 1 || counting.Black(PieceType.Bishop) == 1);
     }
 
     private static bool IsKingKnightVKing(Counting counting)
     {
-        return counting.TotalCount == 3 
+        return counting.TotalCount == 3
             && (counting.White(PieceType.Knight) == 1 || counting.Black(PieceType.Knight) == 1);
     }
 

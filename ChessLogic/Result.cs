@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessLogic;
+﻿namespace ChessLogic;
 
 public class Result
 {
-    public Player Winner {  get; }
+    public Player Winner { get; }
     public EndReason Reason { get; }
 
     public Result(Player winner, EndReason reason)

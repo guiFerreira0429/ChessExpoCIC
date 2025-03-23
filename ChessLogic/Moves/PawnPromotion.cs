@@ -3,7 +3,7 @@
 public class PawnPromotion : Move
 {
     public override MoveType Type => MoveType.PawnPromotion;
-    public override Position FromPos { get;  }
+    public override Position FromPos { get; }
     public override Position ToPos { get; }
 
     private readonly PieceType newType;
@@ -17,6 +17,7 @@ public class PawnPromotion : Move
 
     private Piece CreatePromotionPiece(Player color)
     {
+
         return newType switch
         {
             PieceType.Knight => new Knight(color),
