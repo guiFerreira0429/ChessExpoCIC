@@ -1,6 +1,7 @@
 ﻿using ChessLogic;
 using System.IO;
 using System.Windows.Media;
+using System.Windows;
 
 namespace ChessUI;
 
@@ -48,7 +49,7 @@ public static class PieceThemeHelper
     private static readonly Dictionary<PieceType, ImageSource> whiteSources = [];
     private static readonly Dictionary<PieceType, ImageSource> blackSources = [];
 
-    public static string PieceUrl { get; set; } = "assets/pieces/anarcandy/";
+    public static string PieceUrl { get; set; }
 
     public static void LoadPieceImages() 
     {
@@ -76,25 +77,41 @@ public static class PieceThemeHelper
         LoadPieceImages();
     }
 
-    public static ImageSource GetImage(Player color, PieceType type)
+    public static ImageSource GetImage(Player color, PieceType type, GameType gameType)
     {
-        return color switch
+        if (gameType == GameType.Disguised)
         {
-            Player.White => whiteSources[type],
-            Player.Black => blackSources[type],
-            _ => null
-        };
+            return color switch
+            {
+                Player.White => Images.LoadSvg($"assets/pieces/disguised/w.svg"),
+                Player.Black => Images.LoadSvg($"assets/pieces/disguised/b.svg"),
+                _ => null
+            };
+        }
+        else if (gameType == GameType.Mono)
+        {
+            return Images.LoadSvg($"assets/pieces/mono/{GetPieceCode(type)}.svg");
+        }
+        else
+        {
+            return color switch
+            {
+                Player.White => whiteSources[type],
+                Player.Black => blackSources[type],
+                _ => null
+            };
+        }
     }
 
-    public static ImageSource GetImage(Piece piece)
+    public static ImageSource GetImage(Piece piece, GameType gameType)
     {
-        return piece == null ? null : GetImage(piece.Color, piece.Type);
+        return piece == null ? null : GetImage(piece.Color, piece.Type, gameType);
     }
 }
 
 public static class ColorThemeHelper
 {
-    private static Dictionary<ColorTheme, ColorThemeInfo> _themes = new Dictionary<ColorTheme, ColorThemeInfo>
+    private static Dictionary<ColorTheme, ColorThemeInfo> DicionariosCores = new Dictionary<ColorTheme, ColorThemeInfo>
     {
         {
             ColorTheme.Default, new ColorThemeInfo
@@ -155,21 +172,11 @@ public static class ColorThemeHelper
 
     public static List<ColorThemeInfo> GetAllThemes()
     {
-        return _themes.Values.ToList();
+        return DicionariosCores.Values.ToList();
     }
 
-    public static ColorThemeInfo GetTheme(ColorTheme theme)
+    public static ColorThemeInfo GetThemeInfo(ColorTheme theme)
     {
-        return _themes[theme];
-    }
-
-    public static void ApplyTheme(ColorTheme theme)
-    {
-        ColorThemeInfo themeInfo = _themes[theme];
-
-        System.Windows.Application.Current.Resources["StrokeColor"] = new SolidColorBrush(themeInfo.StrokeColor);
-        System.Windows.Application.Current.Resources["FillColor"] = new SolidColorBrush(themeInfo.FillColor);
-        System.Windows.Application.Current.Resources["TextColor"] = new SolidColorBrush(themeInfo.TextColor);
-        System.Windows.Application.Current.Resources["ButtonColor"] = new SolidColorBrush(themeInfo.ButtonColor);
+        return DicionariosCores[theme];
     }
 }

@@ -8,24 +8,26 @@ namespace ChessLogic;
 
 public class ChessTimer
 {
-    public int InitialTime { get; private set; }
+    public int InitialTime;
+    public int Increment;
 
-    public int Increment { get; private set; }
+    public int RemainingTimeWhite;
+    public int RemainingTimeBlack;  
 
-    public int RemainingTimeWhite { get; private set; }
-    public int RemainingTimeBlack { get; private set; }
+    public Player ActiveClock;
 
-    public Player ActiveClock { get; private set; }
+    public bool IsPaused;
 
-    public bool IsPaused { get; private set; } = true;
+    public event Action<Player, int> OnTimeUpdated;
 
-    private DateTime lastTimestamp;
+    private Timer _timer;
+    private const int TickInterval = 1000;
 
-    public ChessTimer(int initialTimeInSeconds, int incrementInSeconds = 0)
+    public ChessTimer(GameDuration initialTimeInSeconds, GameIncrement incrementInSeconds = 0, Player player = Player.White)
     {
-        InitialTime = initialTimeInSeconds;
-        Increment = incrementInSeconds;
-
+        InitialTime = (int)initialTimeInSeconds;
+        Increment = (int)incrementInSeconds;
+        ActiveClock = player;
         Reset();
     }
 
@@ -33,108 +35,92 @@ public class ChessTimer
     {
         RemainingTimeWhite = InitialTime;
         RemainingTimeBlack = InitialTime;
-        ActiveClock = Player.None;
         IsPaused = true;
+        _timer?.Dispose();
     }
 
-    public void Start(Player player)
+    public void Start()
     {
-        if (player == Player.None)
-            return;
-
-        ActiveClock = player;
-        IsPaused = false;
-        lastTimestamp = DateTime.Now;
+        if (IsPaused)
+        {
+            IsPaused = false;
+            _timer = new Timer(TimerTick, null, 0, TickInterval);
+        }
     }
 
     public void Pause()
     {
-        if (!IsPaused)
-        {
-            UpdateRemainingTime();
-            IsPaused = true;
-        }
+        IsPaused = true;
+        _timer.Dispose();
     }
 
-    public void Resume()
+    private void TimerTick(object state)
     {
-        if (IsPaused && ActiveClock != Player.None)
+        if (IsPaused)
         {
-            IsPaused = false;
-            lastTimestamp = DateTime.Now;
-        }
-    }
-
-    public void SwitchClock()
-    {
-        if (!IsPaused)
-        {
-            UpdateRemainingTime();
-
-            if (ActiveClock == Player.White)
-            {
-                RemainingTimeWhite += Increment;
-                ActiveClock = Player.Black;
-            }
-            else if (ActiveClock == Player.Black)
-            {
-                RemainingTimeBlack += Increment;
-                ActiveClock = Player.White;
-            }
-
-            lastTimestamp = DateTime.Now;
-        }
-    }
-
-    public void UpdateRemainingTime()
-    {
-        if (IsPaused || ActiveClock == Player.None)
             return;
-
-        TimeSpan elapsed = DateTime.Now - lastTimestamp;
-        int secondsElapsed = (int)elapsed.TotalSeconds;
+        } 
 
         if (ActiveClock == Player.White)
         {
-            RemainingTimeWhite = Math.Max(0, RemainingTimeWhite - secondsElapsed);
+            RemainingTimeWhite--;
+            if (RemainingTimeWhite == 0)
+            {
+                Pause();
+            }
+        }
+        else
+        {
+            RemainingTimeBlack--;
+            if (RemainingTimeBlack == 0)
+            {
+                Pause();
+            }
+        }
+
+        OnTimeUpdated?.Invoke(ActiveClock, ActiveClock == Player.White ? RemainingTimeWhite : RemainingTimeBlack);
+    }
+
+    public void ChangePlayer()
+    {
+        if (ActiveClock == Player.White)
+        {
+            RemainingTimeWhite += Increment;
+            OnTimeUpdated?.Invoke(Player.White, RemainingTimeWhite);
+            ActiveClock = Player.Black;
         }
         else if (ActiveClock == Player.Black)
         {
-            RemainingTimeBlack = Math.Max(0, RemainingTimeBlack - secondsElapsed);
+            RemainingTimeBlack += Increment;
+            OnTimeUpdated?.Invoke(Player.Black, RemainingTimeBlack);
+            ActiveClock = Player.White;
         }
-
-        lastTimestamp = DateTime.Now;
-    }
-
-    public bool IsTimeOut(out Player losingPlayer)
-    {
-        UpdateRemainingTime();
-
-        if (RemainingTimeWhite <= 0)
+        else
         {
-            losingPlayer = Player.White;
-            return true;
+            throw new Exception("Jogador Inválido na troca de Relógio");
         }
-
-        if (RemainingTimeBlack <= 0)
-        {
-            losingPlayer = Player.Black;
-            return true;
-        }
-
-        losingPlayer = Player.None;
-        return false;
     }
+}
 
-    public string GetFormattedTime(Player player)
-    {
-        UpdateRemainingTime();
+public enum GameDuration
+{
+    Default = 600,
+    Bullet = 60,
+    Blitz = 300,
+    Rapid = 900,
+    Third = 1200,
+    THalf = 1500,
+    Half = 1800,
+    Long = 3600
+}
 
-        int seconds = player == Player.White ? RemainingTimeWhite : RemainingTimeBlack;
-
-        int minutes = seconds / 60;
-        int remainingSeconds = seconds % 60;
-
-        return $"{minutes:D2}:{remainingSeconds:D2}";
-    }
+public enum GameIncrement
+{
+    Default = 0,
+    One = 1,
+    Three = 3,
+    Five = 5,
+    Ten = 10,
+    Fifteen = 15,
+    Twenty = 20
 }

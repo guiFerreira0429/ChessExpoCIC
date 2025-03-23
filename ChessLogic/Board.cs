@@ -1,262 +1,290 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ChessLogic;
 
-namespace ChessLogic
+public class Board
 {
-    public class Board
-    {
-        private readonly Piece[,] pieces = new Piece[8, 8];
+    private readonly Piece[,] pieces = new Piece[8, 8];
 
-        private readonly Dictionary<Player, Position> pawnSkipPositions = new Dictionary<Player, Position>
+    private readonly Dictionary<Player, Position> pawnSkipPositions = new Dictionary<Player, Position>
+    {
+        { Player.White, null },
+        { Player.Black, null }
+    };
+
+    public Piece this[int row, int col]
+    {
+        get { return pieces[row, col]; }
+        set { pieces[row, col] = value; }
+    }
+
+    public Piece this[Position pos]
+    {
+        get { return this[pos.Row, pos.Column]; }
+        set { this[pos.Row, pos.Column] = value; }
+    }
+
+    public Position GetPawnSkipPosition(Player player)
+    {
+        return pawnSkipPositions[player];
+    }
+
+    public void SetPawnSkipPosition(Player player, Position pos)
+    {
+        pawnSkipPositions[player] = pos;
+    }
+
+    public static Board Initial(GameType gameType)
+    { 
+        Board board = new Board();
+        board.AddStartPieces(gameType);
+        return board;
+    }
+
+    private void AddStartPieces(GameType gameType)
+    {
+        if (gameType == GameType.Mixed )
         {
-            { Player.White, null },
-            { Player.Black, null }
+            SetupRandomBoard();
+        }
+        else
+        {
+            SetupRegularBoard();
+        }
+    }
+
+    private void SetupRandomBoard()
+    {
+        var pieces = new List<Func<Player, Piece>>
+        {
+            p => new Rook(p),
+            p => new Knight(p),
+            p => new Bishop(p),
+            p => new Queen(p),
+            p => new King(p),
+            p => new Bishop(p),
+            p => new Knight(p),
+            p => new Rook(p)
         };
 
-        public Piece this[int row, int col]
+        var random = new Random();
+        pieces = [.. pieces.OrderBy(x => random.Next())];
+
+        for (int c = 0; c < 8; c++)
         {
-            get { return pieces[row, col]; }
-            set { pieces[row, col] = value; }
+            this[0, c] = pieces[c](Player.Black);
+            this[1, c] = new Pawn(Player.Black);
         }
 
-        public Piece this[Position pos]
+        for (int c = 0; c < 8; c++)
         {
-            get { return this[pos.Row, pos.Column]; }
-            set { this[pos.Row, pos.Column] = value; }
+            this[7, c] = pieces[c](Player.White);
+            this[6, c] = new Pawn(Player.White);
         }
+    }
 
-        public Position GetPawnSkipPosition(Player player)
+    private void SetupRegularBoard()
+    {
+        this[0, 0] = new Rook(Player.Black);
+        this[0, 1] = new Knight(Player.Black);
+        this[0, 2] = new Bishop(Player.Black);
+        this[0, 3] = new Queen(Player.Black);
+        this[0, 4] = new King(Player.Black);
+        this[0, 5] = new Bishop(Player.Black);
+        this[0, 6] = new Knight(Player.Black);
+        this[0, 7] = new Rook(Player.Black);
+
+        this[7, 0] = new Rook(Player.White);
+        this[7, 1] = new Knight(Player.White);
+        this[7, 2] = new Bishop(Player.White);
+        this[7, 3] = new Queen(Player.White);
+        this[7, 4] = new King(Player.White);
+        this[7, 5] = new Bishop(Player.White);
+        this[7, 6] = new Knight(Player.White);
+        this[7, 7] = new Rook(Player.White);
+
+        for (int c = 0; c < 8; c++)
         {
-            return pawnSkipPositions[player];
+            this[1, c] = new Pawn(Player.Black);
+            this[6, c] = new Pawn(Player.White);
         }
+    }
 
-        public void SetPawnSkipPosition(Player player, Position pos)
+    public static bool IsInside(Position pos)
+    {
+        return pos.Row >= 0 && pos.Row < 8 && pos.Column >= 0 && pos.Column < 8;
+    }
+
+    public bool IsEmpty(Position pos)
+    {
+        return this[pos] == null;
+    }
+
+    public IEnumerable<Position> PiecePositions()
+    {
+        for (int r = 0; r < 8; r++)
         {
-            pawnSkipPositions[player] = pos;
-        }
-
-        public static Board Initial()
-        { 
-            Board board = new Board();
-            board.AddStartPieces();
-            return board;
-        }
-
-        private void AddStartPieces()
-        {
-            this[0, 0] = new Rook(Player.Black);
-            this[0, 1] = new Knight(Player.Black);
-            this[0, 2] = new Bishop(Player.Black);
-            this[0, 3] = new Queen(Player.Black);
-            this[0, 4] = new King(Player.Black);
-            this[0, 5] = new Bishop(Player.Black);
-            this[0, 6] = new Knight(Player.Black);
-            this[0, 7] = new Rook(Player.Black);
-
-            this[7, 0] = new Rook(Player.White);
-            this[7, 1] = new Knight(Player.White);
-            this[7, 2] = new Bishop(Player.White);
-            this[7, 3] = new Queen(Player.White);
-            this[7, 4] = new King(Player.White);
-            this[7, 5] = new Bishop(Player.White);
-            this[7, 6] = new Knight(Player.White);
-            this[7, 7] = new Rook(Player.White);
-
-            for(int c =  0; c < 8; c++)
+            for (int c = 0; c < 8; c++)
             {
-                this[1, c] = new Pawn(Player.Black);
-                this[6, c] = new Pawn(Player.White);
-            }
-        }
+                Position pos = new Position(r, c);
 
-        public static bool IsInside(Position pos)
-        {
-            return pos.Row >= 0 && pos.Row < 8 && pos.Column >= 0 && pos.Column < 8;
-        }
-
-        public bool IsEmpty(Position pos)
-        {
-            return this[pos] == null;
-        }
-
-        public IEnumerable<Position> PiecePositions()
-        {
-            for (int r = 0; r < 8; r++)
-            {
-                for (int c = 0; c < 8; c++)
+                if (!IsEmpty(pos))
                 {
-                    Position pos = new Position(r, c);
-
-                    if (!IsEmpty(pos))
-                    {
-                        yield return pos;
-                    }
+                    yield return pos;
                 }
             }
         }
+    }
 
-        public IEnumerable<Position> PiecePositionsFor(Player player)
+    public IEnumerable<Position> PiecePositionsFor(Player player)
+    {
+        return PiecePositions().Where(pos => this[pos].Color == player);
+    }
+
+    public bool IsInCheck(Player player)
+    {
+        return PiecePositionsFor(player.Opponent()).Any(pos =>
         {
-            return PiecePositions().Where(pos => this[pos].Color == player);
+            Piece piece = this[pos];
+            return piece.CanCaptureOpponentKing(pos, this);
+        });
+    }
+
+    public Board Copy()
+    {
+        Board copy = new Board();
+
+        foreach(Position pos in PiecePositions())
+        {
+            copy[pos] = this[pos].Copy();
         }
 
-        public bool IsInCheck(Player player)
+        return copy;
+    }
+
+    public Counting CountPieces()
+    {
+        Counting counting = new Counting();
+
+        foreach (Position pos in PiecePositions())
         {
-            return PiecePositionsFor(player.Opponent()).Any(pos =>
-            {
-                Piece piece = this[pos];
-                return piece.CanCaptureOpponentKing(pos, this);
-            });
+            Piece piece = this[pos];
+            counting.Increment(piece.Color, piece.Type);
         }
 
-        public Board Copy()
+        return counting;
+    }
+
+    public bool InsufficientMaterial()
+    {
+        Counting counting = CountPieces();
+
+        return IsKingVKing(counting)
+            || IsKingBishopVKing(counting)
+            || IsKingKnightVKing(counting)
+            || IsKingBishopVKingBishop(counting);
+    }
+
+    private static bool IsKingVKing(Counting counting)
+    {
+        return counting.TotalCount == 2;
+    }
+
+    private static bool IsKingBishopVKing(Counting counting)
+    {
+        return counting.TotalCount == 3 
+            && (counting.White(PieceType.Bishop) == 1 || counting.Black(PieceType.Bishop) == 1);
+    }
+
+    private static bool IsKingKnightVKing(Counting counting)
+    {
+        return counting.TotalCount == 3 
+            && (counting.White(PieceType.Knight) == 1 || counting.Black(PieceType.Knight) == 1);
+    }
+
+    private bool IsKingBishopVKingBishop(Counting counting)
+    {
+        Position wBishopPos = FindPiece(Player.White, PieceType.Bishop);
+        Position bBishopPos = FindPiece(Player.Black, PieceType.Bishop);
+
+        return counting.TotalCount == 4
+            && wBishopPos.SquareColor() == bBishopPos.SquareColor()
+            && counting.White(PieceType.Bishop) == 1 && counting.Black(PieceType.Bishop) == 1;
+    }
+
+    private Position FindPiece(Player color, PieceType type)
+    {
+        return PiecePositionsFor(color).FirstOrDefault(pos => this[pos].Type == type);
+    }
+
+    private bool IsUnmovedKingAndRook(Position kingPos, Position rookPos)
+    {
+        if (IsEmpty(kingPos) || IsEmpty(rookPos))
         {
-            Board copy = new Board();
-
-            foreach(Position pos in PiecePositions())
-            {
-                copy[pos] = this[pos].Copy();
-            }
-
-            return copy;
-        }
-
-        public Counting CountPieces()
-        {
-            Counting counting = new Counting();
-
-            foreach (Position pos in PiecePositions())
-            {
-                Piece piece = this[pos];
-                counting.Increment(piece.Color, piece.Type);
-            }
-
-            return counting;
-        }
-
-        public bool InsufficientMaterial()
-        {
-            Counting counting = CountPieces();
-
-            return IsKingVKing(counting)
-                || IsKingBishopVKing(counting)
-                || IsKingKnightVKing(counting)
-                || IsKingBishopVKingBishop(counting);
-        }
-
-        private static bool IsKingVKing(Counting counting)
-        {
-            return counting.TotalCount == 2;
-        }
-
-        private static bool IsKingBishopVKing(Counting counting)
-        {
-            return counting.TotalCount == 3 
-                && (counting.White(PieceType.Bishop) == 1 || counting.Black(PieceType.Bishop) == 1);
-        }
-
-        private static bool IsKingKnightVKing(Counting counting)
-        {
-            return counting.TotalCount == 3 
-                && (counting.White(PieceType.Knight) == 1 || counting.Black(PieceType.Knight) == 1);
-        }
-
-        private bool IsKingBishopVKingBishop(Counting counting)
-        {
-            Position wBishopPos = FindPiece(Player.White, PieceType.Bishop);
-            Position bBishopPos = FindPiece(Player.Black, PieceType.Bishop);
-
-            return counting.TotalCount == 4
-                && wBishopPos.SquareColor() == bBishopPos.SquareColor()
-                && counting.White(PieceType.Bishop) == 1 && counting.Black(PieceType.Bishop) == 1;
-        }
-
-        // Antes estava assi, mas falta a verificação de nulo, indiano calhau >:(
-        //private Position FindPiece(Player color, PieceType type)
-        //{
-        //    return PiecePositionsFor(color).First(pos => this[pos].Type == type);
-        //}
-
-        // First or Default resolve isso :)
-        private Position FindPiece(Player color, PieceType type)
-        {
-            return PiecePositionsFor(color).FirstOrDefault(pos => this[pos].Type == type);
-        }
-
-        private bool IsUnmovedKingAndRook(Position kingPos, Position rookPos)
-        {
-            if (IsEmpty(kingPos) || IsEmpty(rookPos))
-            {
-                return false;
-            }
-
-            Piece king = this[kingPos];
-            Piece rook = this[rookPos];
-
-            return king.Type == PieceType.King && rook.Type == PieceType.Rook &&
-                    !king.HasMoved && !rook.HasMoved;
-        }
-
-        public bool CastleRightKS(Player player)
-        {
-            return player switch
-            {
-                Player.White => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 7)),
-                Player.Black => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 7)),
-                _ => false,
-            };
-        }
-
-        public bool CastleRightQS(Player player)
-        {
-            return player switch
-            {
-                Player.White => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 0)),
-                Player.Black => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 0)),
-                _ => false,
-            };
-        }
-
-        private bool HasPawnInPosition(Player player, Position[] pawnPositions, Position skipPos)
-        {
-            foreach (Position pos in pawnPositions.Where(IsInside))
-            {
-                Piece piece = this[pos];
-                if (piece == null || piece.Color != player || piece.Type != PieceType.Pawn)
-                {
-                    continue;
-                }
-
-                EnPassant move = new EnPassant(pos, skipPos);
-                if (move.IsLegal(this))
-                {
-                    return true;
-                }
-            }
-
             return false;
         }
 
-        public bool CanCaptureEnPassant(Player player)
-        {
-            Position skipPos = GetPawnSkipPosition(player.Opponent());
+        Piece king = this[kingPos];
+        Piece rook = this[rookPos];
 
-            if (skipPos == null)
+        return king.Type == PieceType.King && rook.Type == PieceType.Rook &&
+                !king.HasMoved && !rook.HasMoved;
+    }
+
+    public bool CastleRightKS(Player player)
+    {
+        return player switch
+        {
+            Player.White => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 7)),
+            Player.Black => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 7)),
+            _ => false,
+        };
+    }
+
+    public bool CastleRightQS(Player player)
+    {
+        return player switch
+        {
+            Player.White => IsUnmovedKingAndRook(new Position(7, 4), new Position(7, 0)),
+            Player.Black => IsUnmovedKingAndRook(new Position(0, 4), new Position(0, 0)),
+            _ => false,
+        };
+    }
+
+    private bool HasPawnInPosition(Player player, Position[] pawnPositions, Position skipPos)
+    {
+        foreach (Position pos in pawnPositions.Where(IsInside))
+        {
+            Piece piece = this[pos];
+            if (piece == null || piece.Color != player || piece.Type != PieceType.Pawn)
             {
-                return false;
+                continue;
             }
 
-            Position[] pawnPositions = player switch
+            EnPassant move = new EnPassant(pos, skipPos);
+            if (move.IsLegal(this))
             {
-                Player.White => [skipPos + Direction.SouthWest, skipPos + Direction.SouthEast],
-                Player.Black => [skipPos + Direction.NorthWest, skipPos + Direction.NorthEast],
-                _ => []
-            };
-
-            return HasPawnInPosition(player, pawnPositions, skipPos);
+                return true;
+            }
         }
+
+        return false;
+    }
+
+    public bool CanCaptureEnPassant(Player player)
+    {
+        Position skipPos = GetPawnSkipPosition(player.Opponent());
+
+        if (skipPos == null)
+        {
+            return false;
+        }
+
+        Position[] pawnPositions = player switch
+        {
+            Player.White => [skipPos + Direction.SouthWest, skipPos + Direction.SouthEast],
+            Player.Black => [skipPos + Direction.NorthWest, skipPos + Direction.NorthEast],
+            _ => []
+        };
+
+        return HasPawnInPosition(player, pawnPositions, skipPos);
     }
 }

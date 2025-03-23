@@ -8,6 +8,8 @@ namespace ChessLogic;
 
 public enum GameType
 {
-    Regular,
-
+    Default,
+    Disguised,
+    Mono,
+    Mixed,
 }
