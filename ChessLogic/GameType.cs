@@ -12,5 +12,4 @@ public enum GameType
     Disguised,
     Mono,
     Mixed,
-    DragDrop
 }

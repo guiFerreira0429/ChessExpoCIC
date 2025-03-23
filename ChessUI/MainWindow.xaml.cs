@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -15,35 +14,24 @@ public partial class MainWindow : Window
 {
     public static MainWindow Instance { get; private set; }
 
+    private ChessTimer _chessTimer;
+    private CapturedPiecesTracker _capturedPiecesTracker;
+
     public static string BoardUrl;
-    public static BoardTheme SelectedBoardTheme;
-
     public static string PieceUrl;
+    public static BoardTheme SelectedBoardTheme;
     public static PieceTheme SelectedPieceTheme;
-
     public static ColorTheme SelectedColorTheme;
     public static GameType SelectedGameType;
+    public static GameDuration SelectedGameDuration;
+    public static GameIncrement SelectedGameIncrement; 
 
     private readonly Image[,] pieceImages = new Image[8, 8];
     private readonly Rectangle[,] highlights = new Rectangle[8, 8];
     private readonly Dictionary<Position, Move> moveCache = [];
-
     public GameState gameState;
     private Position selectedPos = null;
-
     private readonly bool Loading;
-
-    private ObservableCollection<ImageSource> whiteCapturedPieces = [];
-    private ObservableCollection<ImageSource> blackCapturedPieces = [];
-
-    private DispatcherTimer whiteTimer;
-    private DispatcherTimer blackTimer;
-
-    private int whiteTimeRemaining = 600;
-    private int blackTimeRemaining = 600;
-
-    private string whitePlayerName = "Jogador Branco";
-    private string blackPlayerName = "Jogador Preto";
 
     private bool _gameInProgress = false;
     public bool gameInProgress
@@ -53,6 +41,8 @@ public partial class MainWindow : Window
         {
             _gameInProgress = value;
             GameTypeComboBox.IsEnabled = !value;
+            GameDurationComboBox.IsEnabled = !value;
+            GameIncrementComboBox.IsEnabled = !value;
         }
     }
 
@@ -60,17 +50,21 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        InitializeThemeHandling();
+        _chessTimer = new ChessTimer(GameDuration.Default, GameIncrement.Default);
+        _chessTimer.OnTimeUpdated += ChessTimer_Tick;
+
+        _capturedPiecesTracker = new CapturedPiecesTracker();
+        _capturedPiecesTracker.OnTrackerUpdated += CapturedPieces_Change;
 
         Loading = true;
         Instance = this;
 
-        gameState = new GameState(Player.White, Board.Initial(GameType.Default));
+        gameState = new GameState(Player.White, Board.Initial(GameType.Default), _capturedPiecesTracker);
         PieceThemeHelper.LoadPieceImages();
 
         InitializeUI();
 
-        ColorThemeHelper.ApplyTheme(ColorTheme.Default);
+        ApplyTheme(ColorTheme.Default);
         BoardThemeHelper.ChangeBoardTheme(BoardTheme.Default);
         PieceThemeHelper.ChangePieceTheme(PieceTheme.Default);
 
@@ -80,7 +74,6 @@ public partial class MainWindow : Window
         SetCursor(gameState.CurrentPlayer);
         Loading = false;
     }
-
 
     private void InitializeBoard()
     {
@@ -99,7 +92,6 @@ public partial class MainWindow : Window
             }
         }
     }
-
     public void DrawBoard(Board board)
     {
         for (int r = 0; r < 8; r++)
@@ -131,7 +123,6 @@ public partial class MainWindow : Window
             OnToPositionSelected(pos);
         }
     }
-
     private void OnFromPositionSelected(Position pos)
     {
         IEnumerable<Move> moves = gameState.LegalMovesForPiece(pos);
@@ -143,7 +134,6 @@ public partial class MainWindow : Window
             ShowHighlights();
         }
     }
-
     private void OnToPositionSelected(Position pos)
     {
         selectedPos = null;
@@ -161,9 +151,9 @@ public partial class MainWindow : Window
             }
         }
     }
-
     private void HandlePromotion(Position from, Position to)
     {
+        _chessTimer.Pause();
         pieceImages[to.Row, to.Column].Source = PieceThemeHelper.GetImage(gameState.CurrentPlayer, PieceType.Pawn, GameType.Default);
         pieceImages[from.Row, from.Column].Source = null;
 
@@ -174,22 +164,22 @@ public partial class MainWindow : Window
         {
             MenuContainer.Content = null;
             Move promMove = new PawnPromotion(from, to, type);
+            _chessTimer.Start();
             HandleMove(promMove);
         };
     }
-
     private void HandleMove(Move move)
     {
         gameState.MakeMove(move);
         DrawBoard(gameState.Board);
         SetCursor(gameState.CurrentPlayer);
+        _chessTimer.ChangePlayer();
 
         if (gameState.IsGameOver())
         {
             ShowGameOver();
         }
     }
-
     private Position ToSquarePosition(Point point)
     {
         double squareSize = BoardGrid.ActualWidth / 8;
@@ -197,7 +187,6 @@ public partial class MainWindow : Window
         int col = (int)(point.X / squareSize);
         return new Position(row, col);
     }
-
     private void CacheMoves(IEnumerable<Move> moves)
     {
         moveCache.Clear();
@@ -207,7 +196,6 @@ public partial class MainWindow : Window
             moveCache[move.ToPos] = move;
         }
     }
-
     private void ShowHighlights()
     {
         Color color = Color.FromArgb(150, 125, 255, 125);
@@ -217,7 +205,6 @@ public partial class MainWindow : Window
             highlights[to.Row, to.Column].Fill = new SolidColorBrush(color);
         }
     }
-
     private void HideHighlights()
     {
         foreach (Position to in moveCache.Keys)
@@ -237,13 +224,10 @@ public partial class MainWindow : Window
             Cursor = ChessCursors.BlackCursor;
         }
     }
-
-
     private bool IsMenuOnScreen()
     {
         return MenuContainer.Content != null;
     }
-
     private void ShowGameOver()
     {
         GameOverMenu gameOverMenu = new GameOverMenu(gameState);
@@ -262,17 +246,17 @@ public partial class MainWindow : Window
             }
         };
     }
-
     private void RestartGame()
     {
         selectedPos = null;
         HideHighlights();
         moveCache.Clear();
-        gameState = new GameState(Player.White, Board.Initial(SelectedGameType));
+        _chessTimer.Reset();
+        _capturedPiecesTracker.Reset();
+        gameState = new GameState(Player.White, Board.Initial(SelectedGameType), _capturedPiecesTracker);
         DrawBoard(gameState.Board);
         SetCursor(gameState.CurrentPlayer);
     }
-
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
         if (!IsMenuOnScreen() && e.Key == Key.Escape)
@@ -280,7 +264,6 @@ public partial class MainWindow : Window
             ShowPauseMenu();
         }
     }
-
     private void ShowPauseMenu()
     {
         PauseMenu pauseMenu = new();
@@ -296,13 +279,14 @@ public partial class MainWindow : Window
             }
         };
     }
-
     private void InitializeUI()
     {
         BoardThemeComboBox.Items.Clear();
         PieceThemeComboBox.Items.Clear();
         ColorThemeComboBox.Items.Clear();
         GameTypeComboBox.Items.Clear();
+        GameDurationComboBox.Items.Clear();
+        GameIncrementComboBox.Items.Clear();
 
         foreach (BoardTheme theme in Enum.GetValues(typeof(BoardTheme)))
         {
@@ -313,8 +297,6 @@ public partial class MainWindow : Window
                 ThumbnailPath = GetBoardThumbnailPath(theme)
             });
         }
-
-
         foreach (PieceTheme theme in Enum.GetValues(typeof(PieceTheme)))
         {
             if (theme != PieceTheme.Mono && theme != PieceTheme.Disguised)
@@ -327,7 +309,6 @@ public partial class MainWindow : Window
                 });
             }
         }
-
         var temas = ColorThemeHelper.GetAllThemes();
         foreach (ColorThemeInfo themeInfo in temas)
         {
@@ -338,7 +319,6 @@ public partial class MainWindow : Window
                 ColorPreview = themeInfo.PreviewBrush
             });
         }
-
         foreach (GameType gameType in Enum.GetValues(typeof(GameType)))
         {
             GameTypeComboBox.Items.Add(new
@@ -348,14 +328,50 @@ public partial class MainWindow : Window
                 ThumbnailPath = GetGameTypeThumbnailPath(gameType)
             });
         }
+        foreach (GameDuration gameDuration in Enum.GetValues(typeof(GameDuration)))
+        {
+            GameDurationComboBox.Items.Add(new
+            {
+                Duration = gameDuration,
+                Value = (int)gameDuration
+            });
+        }
+        foreach (GameIncrement gameIncrement in Enum.GetValues(typeof(GameIncrement)))
+        {
+            GameIncrementComboBox.Items.Add(new
+            {
+                Increment = gameIncrement,
+                Value = (int)gameIncrement
+            });
+        }
 
         BoardThemeComboBox.SelectedIndex = (int)BoardTheme.Default;
         PieceThemeComboBox.SelectedIndex = (int)PieceTheme.Default;
         ColorThemeComboBox.SelectedIndex = (int)ColorTheme.Default;
         GameTypeComboBox.SelectedIndex = (int)GameType.Default;
+        GameDurationComboBox.SelectedIndex = (int)GameDuration.Default;
+        GameIncrementComboBox.SelectedIndex = (int)GameIncrement.Default;
     }
+    private void ResetUI()
+    {
+        _chessTimer.Reset();
+        _chessTimer.ActiveClock = Player.White;
+        _capturedPiecesTracker.Reset();
+        Dispatcher.Invoke(() =>
+        {
+            StartGameButton.Content = "Jogar";
+            StartGameButton.Background = (SolidColorBrush)Application.Current.Resources["ButtonColor"];
 
-
+            WhiteCapturedPieces.Items.Clear();
+            BlackCapturedPieces.Items.Clear();
+            WhiteAdvantage.Visibility = Visibility.Collapsed;
+            BlackAdvantage.Visibility = Visibility.Collapsed;
+            WhiteClock.Text = $"{FormatTime((int)SelectedGameDuration)}";
+            BlackClock.Text = $"{FormatTime((int)SelectedGameDuration)}";
+        });
+        gameState = new GameState(Player.White, Board.Initial(SelectedGameType), _capturedPiecesTracker);
+        DrawBoard(gameState.Board);
+    }
     private ImageSource GetBoardThumbnailPath(BoardTheme theme)
     {
         string basePath = $"Assets/Boards/{theme.ToString().ToLower()}";
@@ -370,13 +386,11 @@ public partial class MainWindow : Window
 
         return Images.LoadImage(BoardThemeHelper.GetBoardTexturePath(theme));
     }
-
     private ImageSource GetPieceThumbnailPath(PieceTheme theme)
     {
         string basePath = $"Assets/Pieces/{theme.ToString().ToLower()}/wN.svg";
         return Images.LoadSvg(basePath);
     }
-
     private ImageSource GetGameTypeThumbnailPath(GameType gameType)
     {
         string basePath = "Assets/Pieces/";
@@ -386,12 +400,9 @@ public partial class MainWindow : Window
             GameType.Disguised => $"{basePath}disguised/w.svg",
             GameType.Mono => $"{basePath}mono/N.svg",
             GameType.Mixed => $"{basePath}anarcandy/wN.svg",
-            GameType.DragDrop => $"{basePath}tatiana/wN.svg",
             _ => throw new ArgumentException("Tipo de Jogo Inválido", nameof(gameType))
         });
     }
-
-
     private void BoardThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!Loading)
@@ -404,7 +415,6 @@ public partial class MainWindow : Window
             }
         }
     }
-
     private void PieceThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!Loading)
@@ -422,7 +432,6 @@ public partial class MainWindow : Window
             }
         }
     }
-
     private void ColorThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!Loading)
@@ -434,7 +443,7 @@ public partial class MainWindow : Window
 
                 try
                 {
-                    ColorThemeHelper.ApplyTheme(SelectedColorTheme);
+                    ApplyTheme(SelectedColorTheme);
                 }
                 catch (Exception ex)
                 {
@@ -443,7 +452,6 @@ public partial class MainWindow : Window
             }
         }
     }
-
     private void GameTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!Loading)
@@ -460,12 +468,37 @@ public partial class MainWindow : Window
                 {
                     PieceThemeComboBox.IsEnabled = true;
                 }
-                gameState = new GameState(Player.White, Board.Initial(SelectedGameType));
-                DrawBoard(gameState.Board);
+
+                ResetUI();
             }
         }
     }
-
+    private void GameDurationComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!Loading)
+        {
+            if(GameDurationComboBox.SelectedItem != null)
+            {
+                dynamic item = GameDurationComboBox.SelectedItem;
+                SelectedGameDuration = item.Duration;
+                _chessTimer.InitialTime = item.Value;
+                ResetUI();
+            }
+        }
+    }
+    private void GameIncrementComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!Loading)
+        {
+            if (GameIncrementComboBox.SelectedItem != null)
+            {
+                dynamic item = GameIncrementComboBox.SelectedItem;
+                SelectedGameIncrement = item.Increment;
+                _chessTimer.Increment = item.Value;
+                ResetUI();
+            }
+        }
+    }
 
     private void StartGameButton_Click(object sender, RoutedEventArgs e)
     {
@@ -474,98 +507,103 @@ public partial class MainWindow : Window
             GameType gameType = GameTypeComboBox.SelectedItem != null ?
                         (GameTypeComboBox.SelectedItem as dynamic).Theme : GameType.Default;
 
-            StartGame(gameType);
-
             StartGameButton.Content = "Pausar";
             StartGameButton.Background = new SolidColorBrush(Colors.Orange);
+
+            _chessTimer.Start();
 
             gameInProgress = true;
         }
         else
         {
-            PauseGame();
-
             StartGameButton.Content = "Continuar";
             StartGameButton.Background = new SolidColorBrush(Colors.Green);
+
+            _chessTimer.Pause();
 
             gameInProgress = false;
         }
     }
-
-    private void StartGame(GameType gameType)
+    private void ChessTimer_Tick(Player player, int seconds) 
     {
-        whiteCapturedPieces.Clear();
-        blackCapturedPieces.Clear();
-
-        //WhiteCapturedPiecesPanel.Visibility = Visibility.Visible;
-        //BlackCapturedPiecesPanel.Visibility = Visibility.Visible;
-
-        //WhiteCapturedPiecesPanel.ItemsSource = whiteCapturedPieces;
-        //BlackCapturedPiecesPanel.ItemsSource = blackCapturedPieces;
-
-        gameState.StartGame();
-
-        //InitializeTimers();
-        //StartGameClock();
-
-        //SetupCapturedPiecesTracking();
-    }
-
-    private void PauseGame()
-    {
-        gameState.PauseGame();
-
-        //gameState.IsEnabled = false;
-
-        //ShowPauseOverlay();
-    }
-
-    private void ColorThemeHelper_ThemeChanged(object sender, ThemeChangedEventArgs e)
-    {
-        Application.Current.Dispatcher.Invoke(() =>
+        Dispatcher.Invoke(() =>
         {
-            RefreshEntireUI();
+            if (!gameInProgress)
+            {
+                return;
+            }
+            else
+            {
+                string formatedTime = FormatTime(seconds);
+                if (player == Player.White)
+                {      
+                        WhiteClock.Text = formatedTime;
+                }
+                else
+                {
+                       BlackClock.Text = formatedTime;
+                }
+            }
         });
     }
-
-
-    private void RefreshEntireUI()
+    private void CapturedPieces_Change(List<Piece> capturedByWhite, List<Piece> capturedByBlack, int materialAdvantage)
     {
-        Style oldStyle = null;
-        if (Resources.Contains("ThemeComboBoxStyle"))
+        Dispatcher.Invoke(() =>
         {
-            oldStyle = Resources["ThemeComboBoxStyle"] as Style;
-            Resources.Remove("ThemeComboBoxStyle");
-            Resources.Add("ThemeComboBoxStyle", oldStyle);
-        }
+            WhiteCapturedPieces.Items.Clear();
+            BlackCapturedPieces.Items.Clear();
 
-        InvalidateVisual();
+            foreach (Piece piece in capturedByWhite)
+            {
+                WhiteCapturedPieces.Items.Add(new Image
+                {
+                    Source = PieceThemeHelper.GetImage(piece, SelectedGameType),
+                    Width = 30,
+                    Height = 30
+                });
+            }
+            foreach (Piece piece in capturedByBlack)
+            {
+                BlackCapturedPieces.Items.Add(new Image
+                {
+                    Source = PieceThemeHelper.GetImage(piece, SelectedGameType),
+                    Width = 30,
+                    Height = 30
+                });
+            }
 
-        ForceUpdateAllControls((Panel)Content);
+            BlackAdvantage.Visibility = Visibility.Collapsed;
+            WhiteAdvantage.Visibility = Visibility.Collapsed;
+
+            if (materialAdvantage > 0)
+            {
+                
+                WhiteAdvantage.Visibility = Visibility.Visible;
+                WhiteAdvantage.Text = $"+{materialAdvantage}";
+            }
+            else if (materialAdvantage < 0)
+            {
+
+                BlackAdvantage.Visibility = Visibility.Visible;
+                BlackAdvantage.Text = $"+{-1 * materialAdvantage}";
+            }
+        });
     }
-
-    private void ForceUpdateAllControls(Panel panel)
+    private string FormatTime(int seconds)
     {
-        if (panel == null) return;
-
-        foreach (UIElement element in panel.Children)
+        int minutes = seconds / 60;
+        int remainingSeconds = seconds % 60;
+        return $"{minutes}:{remainingSeconds:00}";
+    }
+    private void ApplyTheme(ColorTheme theme)
+    {
+        ColorThemeInfo themeInfo = ColorThemeHelper.GetThemeInfo(theme);
+        Dispatcher.Invoke(() =>
         {
-            element.InvalidateVisual();
-
-            if (element is Panel childPanel)
-            {
-                ForceUpdateAllControls(childPanel);
-            }
-            else if (element is ContentControl contentControl && contentControl.Content is Panel contentPanel)
-            {
-                ForceUpdateAllControls(contentPanel);
-            }
-        }
+            Application.Current.Resources["StrokeColor"] = new SolidColorBrush(themeInfo.StrokeColor);
+            Application.Current.Resources["FillColor"] = new SolidColorBrush(themeInfo.FillColor);
+            Application.Current.Resources["TextColor"] = new SolidColorBrush(themeInfo.TextColor);
+            Application.Current.Resources["ButtonColor"] = new SolidColorBrush(themeInfo.ButtonColor);
+        });
     }
-
-    private void InitializeThemeHandling()
-    {
-        ColorThemeHelper.ThemeChanged += ColorThemeHelper_ThemeChanged;
-    }
-    
 }

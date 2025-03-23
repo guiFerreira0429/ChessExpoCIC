@@ -111,7 +111,7 @@ public static class PieceThemeHelper
 
 public static class ColorThemeHelper
 {
-    private static Dictionary<ColorTheme, ColorThemeInfo> jose = new Dictionary<ColorTheme, ColorThemeInfo>
+    private static Dictionary<ColorTheme, ColorThemeInfo> DicionariosCores = new Dictionary<ColorTheme, ColorThemeInfo>
     {
         {
             ColorTheme.Default, new ColorThemeInfo
@@ -172,30 +172,11 @@ public static class ColorThemeHelper
 
     public static List<ColorThemeInfo> GetAllThemes()
     {
-        return jose.Values.ToList();
+        return DicionariosCores.Values.ToList();
     }
 
-    public static ColorThemeInfo GetTheme(ColorTheme theme)
+    public static ColorThemeInfo GetThemeInfo(ColorTheme theme)
     {
-        return jose[theme];
+        return DicionariosCores[theme];
     }
-
-    public static void ApplyTheme(ColorTheme theme)
-    {
-        ColorThemeInfo themeInfo = jose[theme];
-
-        Application.Current.Resources["StrokeColor"] = new SolidColorBrush(themeInfo.StrokeColor);
-        Application.Current.Resources["FillColor"] = new SolidColorBrush(themeInfo.FillColor);
-        Application.Current.Resources["TextColor"] = new SolidColorBrush(themeInfo.TextColor);
-        Application.Current.Resources["ButtonColor"] = new SolidColorBrush(themeInfo.ButtonColor);
-
-        ThemeChanged?.Invoke(null, new ThemeChangedEventArgs { Theme = theme });
-    }
-
-    public static event EventHandler<ThemeChangedEventArgs> ThemeChanged;
-}
-
-public class ThemeChangedEventArgs : EventArgs
-{
-    public ColorTheme Theme { get; set; }
 }

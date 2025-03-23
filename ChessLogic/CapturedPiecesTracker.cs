@@ -11,7 +11,9 @@ public class CapturedPiecesTracker
     private List<Piece> capturedByWhite = new List<Piece>();
     private List<Piece> capturedByBlack = new List<Piece>();
 
-    private int whiteMaterialAdvantage = 0;
+    private int materialAdvantage = 0;
+
+    public event Action<List<Piece>, List<Piece>, int> OnTrackerUpdated;
 
     private static readonly Dictionary<PieceType, int> pieceValues = new Dictionary<PieceType, int>
     {
@@ -36,40 +38,21 @@ public class CapturedPiecesTracker
         if (capturingPlayer == Player.White)
         {
             capturedByWhite.Add(capturedPiece);
-            whiteMaterialAdvantage += pieceValues[capturedPiece.Type];
+            materialAdvantage += pieceValues[capturedPiece.Type];
         }
         else if (capturingPlayer == Player.Black)
         {
             capturedByBlack.Add(capturedPiece);
-            whiteMaterialAdvantage -= pieceValues[capturedPiece.Type];
+            materialAdvantage -= pieceValues[capturedPiece.Type];
         }
+
+        OnTrackerUpdated?.Invoke(capturedByWhite, capturedByBlack, materialAdvantage);
     }
 
     public void Reset()
     {
         capturedByWhite.Clear();
         capturedByBlack.Clear();
-        whiteMaterialAdvantage = 0;
-    }
-
-    public IEnumerable<Piece> GetCapturedPieces(Player player)
-    {
-        return player == Player.White ? capturedByWhite : capturedByBlack;
-    }
-
-    public int GetMaterialAdvantage()
-    {
-        return whiteMaterialAdvantage;
-    }
-
-    public string GetFormattedAdvantage()
-    {
-        if (whiteMaterialAdvantage == 0)
-            return "+0";
-
-        if (whiteMaterialAdvantage > 0)
-            return $"+{whiteMaterialAdvantage}";
-        else
-            return $"{whiteMaterialAdvantage}";
+        materialAdvantage = 0;
     }
 }
