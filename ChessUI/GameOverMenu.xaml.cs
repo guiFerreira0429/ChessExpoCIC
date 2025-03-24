@@ -33,8 +33,8 @@ public partial class GameOverMenu : UserControl
         return player
         switch
         {
-            Player.White => "Branco",
-            Player.Black => "Preto",
+            Player.White => "Brancas",
+            Player.Black => "Pretas",
             _ => ""
         };
     }
@@ -45,10 +45,10 @@ public partial class GameOverMenu : UserControl
         switch
         {
             EndReason.Stalemate => $"StaleMate - Empate",
-            EndReason.Checkmate => $"CheckMate - {PlayerString(currentPlayer)} Perdeu",
+            EndReason.Checkmate => $"CheckMate - {PlayerString(currentPlayer)} Perderam",
             EndReason.FiftyMoveRule => "Regra das 50 jogadas - Empate",
             EndReason.ThreefoldRepetition => "Repetição de jogadas - Empate",
-            EndReason.TimeOut => $"Tempo esgotado - {PlayerString(currentPlayer)} Perdeu",
+            EndReason.TimeOut => $"Tempo esgotado - {PlayerString(currentPlayer)} Perderam",
             _ => ""
         };
     }

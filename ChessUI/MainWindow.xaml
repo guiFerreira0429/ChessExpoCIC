@@ -189,7 +189,7 @@
                     <Image x:Name="BlackPlayer"  Margin="10" />
                 </Border>
                 <!-- Nome e Peças Capturadas -->
-                <TextBlock  Grid.Column="1" Margin="10,0,0,0" Text="Jogador Preto" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock  Grid.Column="1" Margin="10,0,0,0" Text="Peças Pretos" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0,0,0">
                     <StackPanel Orientation="Horizontal">
                         <ItemsControl x:Name="BlackCapturedPieces">
@@ -339,7 +339,7 @@
                     <Image Source="Assets/Pieces/default/wK.svg" Margin="10"/>
                 </Border>
                 <!-- Nome e Peças Capturadas -->
-                <TextBlock  Grid.Column="1" Margin="10,0,0,0" Text="Jogador Branco" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock  Grid.Column="1" Margin="10,0,0,0" Text="Peças Brancas" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0,0,0">
                     <StackPanel Orientation="Horizontal">
                         <ItemsControl x:Name="WhiteCapturedPieces">
