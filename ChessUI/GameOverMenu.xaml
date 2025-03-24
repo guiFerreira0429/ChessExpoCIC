@@ -34,14 +34,14 @@
             <Button Grid.Row="2"
                 Content="Jogar"
                 Style="{DynamicResource ButtonStyle}"
-                Width="80"
+                Width="100"
                 Height="30"
                 Click="Restart_Click"/>
             <Button Grid.Row="2"
                 Grid.Column="1"
                 Content="Sair"
                 Style="{DynamicResource ButtonStyle}"
-                Width="80"
+                Width="100"
                 Height="30"
                 Click="Exit_Click"/>
         </Grid>

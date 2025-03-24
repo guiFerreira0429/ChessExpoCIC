@@ -29,16 +29,16 @@
                 Grid.Row="2"
                 Content="CONTINUAR"
                 Style="{DynamicResource ButtonStyle}"
-                Width="80"
+                Width="100"
                 Height="30"
                 Click="Continue_Click"
             />
             <Button 
                 Grid.Row="2"
                 Grid.Column="1"
-                Content="JOGAR NOVAMENTE"
+                Content="RECOMEÇAR"
                 Style="{DynamicResource ButtonStyle}"
-                Width="80"
+                Width="100"
                 Height="30"
                 Click="Restart_Click"
             />
